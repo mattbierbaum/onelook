@@ -16,7 +16,7 @@ var flick_noise = 6e3;
 var flick = flick_goal;
 
 // things we can change
-var n = 5;
+var n = 2;
 
 // neighborlist stuff
 var lx, ly;
@@ -54,15 +54,20 @@ function rgb(r,g,b) {
 }
 
 var sound = new Howl({
-    urls: ['http://runat.me/tmp/creak.mp3'],
+    urls: ['http://runat.me/tmp/onelook/sounds/party.mp3'],
     autoplay: false,
     loop: false,
     volume: 0.5,
     onend: function() {}
 });
 
+function play_sound_relative(mus, posx, posy, plx, ply, vol){
+
+}
+
 function playsound(){
-   sound.play();
+    sound.pos3d(0.5, 0, 0); 
+    sound.play();
 }
 
 function update(){
