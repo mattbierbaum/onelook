@@ -6,35 +6,36 @@ var vy=[];
 var fx=[];
 var fy=[];
 var r=[];
-var type=[];
 var ivor=[];
 var ivoravg;
 
-var flick_goal = 70.;
+var flick_goal = 20.;
 var flick_speed = 1e-3;
 var flick_noise = 6e3;
 var flick = flick_goal;
 
-// things we can change
-var n = 1;
 
 // sizes
 var LX = 640;
 var LY = 400;
 
-var INITX = 70;
-var INITY = 350;
-
-// neighborlist stuff
-var lx, ly;
-var size = [0,0];
-var NMAX = 50;
-var cells = [];
-var count = [];
+var INITX = [70,70,140,330,300,150,330,450,330];
+var INITY = [350,150,100,200,240,50,200,300,300];
+var type = [1,2,2,2,2,3,3,3,3];
+var n = 9;
+// guy = 1 / sleeping = 2 / walking = 3
 
 var radius = 5.0;
 var R = 2*radius;
 var gdt = 0.1;
+
+// Monster params
+var monster_cutoff2 = 4*radius*radius;
+var walking_speed = 4e2;
+var sleeper_r2 = 30.*30.;
+var sleeper_force_mag = 0.2;
+
+
 
 // the variables we change
 var epsilon = 100;
@@ -90,6 +91,21 @@ function load_level() {
   imgd = levelctx.getImageData(0,0,LX,LY).data;
 }
 
+function game_over() {
+    // Game is over
+    update_pause();
+    alert('GAME OVER');
+    init_empty();
+    x[0] = INITX[0];
+    y[0] = INITY[0];
+    vx[0] = 0.;
+    vy[0] = 0.;
+    fx[0] = 0.;
+    fy[0] = 0.;
+    keys[0] = keys[1] = keys[2] = keys[3] = 0;
+    update_pause();
+    // setTimeout(update_pause,1000);
+}
 
 function is_level_wall(xx,yy) {
   var i = 4*Math.floor(xx) + 4*LX*Math.floor(yy);
@@ -99,39 +115,68 @@ function is_level_wall(xx,yy) {
   return false;
 }
 
+function is_level_lava(xx,yy) {
+  var i = 4*Math.floor(xx) + 4*LX*Math.floor(yy);
+  if (imgd[i] == 255 && imgd[i+1] ==0 && imgd[i+2] == 0) {
+      return true;
+  }
+  return false;
+}
+
+function is_monster(xx,yy) {
+    for (var i=1; i<n; i++) {
+       if ((x[i]-x[0])*(x[i]-x[0])+(y[i]-y[0])*(y[i]-y[0]) < monster_cutoff2) {
+           return true;
+       }
+    }
+    return false;
+}
+
+function is_game_over(xx,yy) {
+    if (is_level_lava(xx,yy)) return true;
+    if (is_monster(xx,yy)) return true;
+    return false;
+}
+
+
 function update(){
     for (var i=0; i<n; i++) {
         fx[i] = 0.0; 
         fy[i] = 0.0;
 
-        for (var j=0; j<n; j++){
-            if (i==j) continue;
-            
-            var dx = x[j] - x[i];
-            var dy = y[j] - y[i];
-            var l = Math.sqrt(dx*dx + dy*dy);
-            if (l > 1e-6 && l < R){
-                var r0 = (r[i]+r[j]);
-                var f = (1-l/r0);
-                var c0 = -epsilon * f*f * (l<r0);
-                fx[i] += c0*dx;
-                fy[i] += c0*dy;
-            }
-        }
+        // damping
         var vlen = (vx[i]*vx[i] + vy[i]*vy[i]);
-        if (vlen > 1e-6){
+        if (vlen > 1e-6 && type[i] != 3){
             fx[i] += -damp*vlen*vx[i]/vlen;
             fy[i] += -damp*vlen*vy[i]/vlen;
         }
 
+        // if it is our guy
         if (type[i] == 1){
             if (keys[0] == 1) {fy[i] -= 5.0;}
             if (keys[1] == 1) {fy[i] += 5.0;}
             if (keys[2] == 1) {fx[i] -= 5.0;}
             if (keys[3] == 1) {fx[i] += 5.0;}
         }
+
+        // if it is a walking monster
+        if (type[i] == 3 && vlen < 1e-1) {
+            fx[i] += walking_speed*(2*Math.random()-1)*(2*Math.random()-1)*(2*Math.random()-1);
+            fy[i] += walking_speed*(2*Math.random()-1)*(2*Math.random()-1)*(2*Math.random()-1);
+        }
+
+        // if it is a sleeper
+        if (type[i] == 2) {
+            // check to see if we are in range
+            if ((x[i]-x[0])*(x[i]-x[0])+(y[i]-y[0])*(y[i]-y[0]) < sleeper_r2) {
+                // give it a force towards the guy
+                fx[i] = -sleeper_force_mag * (x[i] - x[0]);
+                fy[i] = -sleeper_force_mag * (y[i] - y[0]);
+            }
+        }
     }
 
+    // Do the time step integration
     for (var i=0; i<n; i++){
         vx[i] += fx[i] * gdt;
         vy[i] += fy[i] * gdt;
@@ -152,23 +197,27 @@ function update(){
             vy[i] = 0;
         }
     
-        if (x[i] >= lx){x[i] = 2*lx-x[i]; vx[i] *= -1;}
+        if (x[i] >= LX){x[i] = 2*LX-x[i]; vx[i] *= -1;}
         if (x[i] < 0)  {x[i] = -x[i];     vx[i] *= -1;}
-        if (y[i] >= ly){y[i] = 2*ly-y[i]; vy[i] *= -1;}
+        if (y[i] >= LY){y[i] = 2*LY-y[i]; vy[i] *= -1;}
         if (y[i] < 0)  {y[i] = -y[i];     vy[i] *= -1;}
 
     }
+
+    if (is_game_over(x[0],y[0])) {
+        game_over();
+    }
 }
 
-function draw_all(x, y, r, lx, ly, cw, ch, ctx, ctx2) {
+function draw_all(x, y, r, LX, LY, cw, ch, ctx, ctx2) {
     load_level();
 
-    var sx = cw/lx;
-    var sy = ch/ly;
+    var sx = cw/LX;
+    var sy = ch/LY;
     var ss = Math.sqrt(sx*sy);
     for (var i=0; i<x.length; i++) {
-        var indx = Math.floor(x[i]/lx * size[0]);
-        var indy = Math.floor(y[i]/ly * size[1]);
+        var indx = Math.floor(x[i]/LX);
+        var indy = Math.floor(y[i]/LY);
         ctx.beginPath();
         ctx.arc(sx*x[i], sy*y[i], ss*r[i], 0, 2*Math.PI, true);
         ctx.lineWidth = 1;
@@ -176,19 +225,19 @@ function draw_all(x, y, r, lx, ly, cw, ch, ctx, ctx2) {
         ctx.stroke();
 
         var cr,cg,cb;
-        if (type[i] == 0){
-            if (showforce == true){
-                cr = 180;
-                cg = 180;
-                cb = 180;
-            } else {
-                cr = 50;
-                cg = 50;
-                cb = 50;
-            }
+        if (type[i] == 1){
+            // our guy
+            cr = 250;
+            cg = 0;
+            cb = 0;
+        } else if (type[i] == 2) {
+            // sleeping
+            cr = 0;
+            cg = 255;
+            cb = 255;
         } else {
             cr = 255;
-            cg = 0;
+            cg = 255;
             cb = 0;
         }
         ctx.fillStyle = rgb(cr,cg,cb);
@@ -196,33 +245,20 @@ function draw_all(x, y, r, lx, ly, cw, ch, ctx, ctx2) {
     }
 
 
-    flick = flick + flick_speed * (flick * ( flick_goal - flick) + flick_noise * (2*Math.random()-1));
+    flick = flick + flick_speed * (flick * ( flick_goal - flick) + flick_noise * (2*Math.random()-1)*(2*Math.random()-1)*(2*Math.random()-1));
 
     flick = Math.min(flick, 100);
     flick = Math.max(flick, 30);
 
     var radgrad = ctx.createRadialGradient(sx*x[0], sy*y[0], 0, sx*x[0], sy*y[0], flick);
     radgrad.addColorStop(0, 'rgba(0,0,0,0.0)');
-    radgrad.addColorStop(0.5, 'rgba(0,0,0,150)');
+    // GRADIENT
+    radgrad.addColorStop(0.5, 'rgba(0,0,0,0.5)');
     radgrad.addColorStop(1, 'rgba(0,0,0,1.0)');
     ctx2.fillStyle = radgrad;
     ctx2.fillRect(0,0,c.width,c.height);
 }
 
-function init_sidelength(L){
-    lx = LX;//
-    ly = LY;
-
-    /* initialize the neighborlist */
-    size[0] = Math.floor(lx / R);
-    size[1] = Math.floor(ly / R);
-    for (var i=0; i<size[0]*size[1]*NMAX; i++){
-        cells[i] = 0;
-    }
-    for (var i=0; i<size[0]*size[1]; i++){
-        count[i] = 0;
-    }
-}    
 
 
 function init_empty(){
@@ -231,13 +267,11 @@ function init_empty(){
     y = [];
     vx = [];
     vy = [];
-    type = [];
 
     for (var i=0; i<n; i++) {
-        r.push(0.0);
-        x.push(0.0);
-        y.push(0.0);
-        type.push(0);
+        r.push(radius);
+        x.push(INITX[i]);
+        y.push(INITY[i]);
         vx.push(0.0);
         vy.push(0.0);
         fx.push(0.0);
@@ -245,35 +279,6 @@ function init_empty(){
     }
 }
 
-function init_circle(){
-    for (var i=0; i<n; i++) {
-        var tx = lx*Math.random();
-        var ty = ly*Math.random();
-        var tt = 2*Math.PI*Math.random();
-
-        type[i] = 0;
-        r[i] = radius;
-        x[i] = tx;
-        y[i] = ty;
-        var dd = Math.sqrt((tx-lx/2)*(tx-lx/2) + (ty-ly/2)*(ty-ly/2));
-        var rad = Math.sqrt(frac*lx*ly/Math.PI);
-        if (docircle==true){
-            if (frac==0.01){type[0] =1;} 
-            else if (frac==1.0) {type[i] = 1;}
-            else { if (dd<rad){ type[i] = 1; }else{ type[i] = 0; } }
-        } else {
-            if (frac==0.01){type[0] =1;} 
-            else if (frac==1.0) {type[i] = 1;}
-            else { if (Math.random() < frac){ type[i] = 1;} else {type[i]=0;} }
-        }
-        vx[i] = vhappy*(Math.random()-0.5);
-        vy[i] = vhappy*(Math.random()-0.5);
-    }
-
-    // hack red guys position
-    x[0] = INITX;
-    y[0] = INITY;
-}
 
 function update_pause(){
     if (dodraw == true){
@@ -295,7 +300,7 @@ var tick = function(T) {
         ctx2.fillStyle = 'rgba(0,0,0,0.0)';
         ctx2.clearRect(0, 0, c.width, c.height);
         ctx2.fillRect(0,0,c.width,c.height);
-        draw_all(x, y, r, lx, ly, c.width, c.height, ctx, ctx2);
+        draw_all(x, y, r, LX, LY, c.width, c.height, ctx, ctx2);
         for (var i=0; i<frameskip; i++){
             frame++;
             update();
@@ -318,8 +323,6 @@ var init = function() {
     ctx2 = c2.getContext('2d');
 
     init_empty();
-    init_sidelength(50);
-    init_circle(frac);
 
     document.body.addEventListener('keyup', function(ev) {
         if (ev.keyCode == 87){ keys[0] = 0; } //up
@@ -339,6 +342,7 @@ var init = function() {
 
     registerAnimationRequest();
     requestAnimationFrame(tick, c);
+
 };
 window.onload = init;
 
