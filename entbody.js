@@ -352,7 +352,7 @@ if ( !window.requestAnimationFrame ) {
       window.oRequestAnimationFrame ||
       window.msRequestAnimationFrame ||
       function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
-              window.setTimeout( callback, 16 ); /*1000 / 60 );*/
+              window.setTimeout( callback, 32 ); /*1000 / 60 );*/
       };
     } )();
 }
