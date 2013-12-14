@@ -331,7 +331,7 @@ var init = function() {
     empty = document.createElement('canvas');
     empty.width = empty.height = 1;
     c = document.getElementById('canvas');
-    c2 = document.getElementById('canvas2');
+    c2 = document.getElementById('light');
     c.style.cursor = 'url('+empty.toDataURL()+')';
     c2.style.cursor = 'url('+empty.toDataURL()+')';
     ctx = c.getContext('2d');
