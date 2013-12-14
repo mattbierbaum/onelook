@@ -1,8 +1,6 @@
 <html>
 <head>
 <script src="entbody.js"></script>
-<link rel="stylesheet" href="style.css">
-
 <style type='text/css'>
 body {
     font-family:"Times New Roman", Times, serif;
@@ -17,6 +15,12 @@ body {
     top: 10px;
     border: 1px solid black;
 }
+
+canvas {
+    position: absolute;
+    top: 9px;
+    left: 9px;
+}
 </style>
 
 <title>You only get one</title>
@@ -24,7 +28,8 @@ body {
 <body>
     <center>
     <div id='entbody'>
-        <canvas id='canvas' height=600 width=600></canvas>
+        <canvas id='canvas' height=600 width=600 z-index=0></canvas>
+        <canvas id='canvas2' height=600 width=600 z-index=1></canvas>
     </div>
 </center>
 </body>

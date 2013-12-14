@@ -12,6 +12,11 @@ var colavg;
 var ivor=[];
 var ivoravg;
 
+var flick_goal = 40;
+var flick_speed = 1e-3;
+var flick_noise = 6e3;
+var flick = flick_goal;
+
 // things we can change
 var n = 500;
 var pbc = [1,1];
@@ -173,7 +178,7 @@ function update(){
     colavg /= n;
 }
 
-function draw_all(x, y, r, lx, ly, cw, ch, ctx) {
+function draw_all(x, y, r, lx, ly, cw, ch, ctx, ctx2) {
     var sx = cw/lx;
     var sy = ch/ly;
     var ss = Math.sqrt(sx*sy);
@@ -189,14 +194,12 @@ function draw_all(x, y, r, lx, ly, cw, ch, ctx) {
         var cr,cg,cb;
         if (type[i] == 0){
             if (showforce == true){
-                //cr = Math.floor(255*col[i]/(4*colavg+1e-5)+10);
-                //if (cr > 255) {cr = 255;}
                 cr = Math.abs(col[i]/colscale);
                 if (cr < 0) {cr = 0.0;}
                 if (cr > 1) {cr = 1.0;}
-                cr = Math.floor(255*cr);
-                cg = cr;
-                cb = cr;
+                cr = 180;//Math.floor(255*cr);
+                cg = 180;//cr;
+                cb = 180;//cr;
             } else {
                 cr = 50;
                 cg = 50;
@@ -211,6 +214,17 @@ function draw_all(x, y, r, lx, ly, cw, ch, ctx) {
         ctx.fill();
     }
 
+    flick = flick + flick_speed * (flick * ( flick_goal - flick) + flick_noise * (2*Math.random()-1));
+
+    flick = Math.min(flick, 100);
+    flick = Math.max(flick, 30);
+
+    var radgrad = ctx.createRadialGradient(sx*x[0], sy*y[0], 0, sx*x[0], sy*y[0], flick);
+    radgrad.addColorStop(0, 'rgba(0,0,0,0.0)');
+    radgrad.addColorStop(0.5, 'rgba(0,0,0,0.5)');
+    radgrad.addColorStop(1, 'rgba(0,0,0,1)');
+    ctx2.fillStyle = radgrad;
+    ctx2.fillRect(0,0,c.height,c.width);
 }
 
 function calc_sidelength(){
@@ -297,13 +311,16 @@ var tick = function(T) {
         ctx.fillStyle = 'rgba(200,200,200,0.2)';
         ctx.clearRect(0, 0, c.width, c.height);
         ctx.fillRect(0,0,c.width,c.height);
+        ctx2.fillStyle = 'rgba(0,0,0,0.0)';
+        ctx2.clearRect(0, 0, c.width, c.height);
+        ctx2.fillRect(0,0,c.width,c.height);
         for (var i=0; i<frameskip; i++){
             frame++;
             nbl_bin();
             update();
         }
  
-        draw_all(x, y, r, lx, ly, c.width, c.height, ctx);
+        draw_all(x, y, r, lx, ly, c.width, c.height, ctx, ctx2);
         requestAnimationFrame(tick, c);
     }
 };
@@ -314,8 +331,11 @@ var init = function() {
     empty = document.createElement('canvas');
     empty.width = empty.height = 1;
     c = document.getElementById('canvas');
+    c2 = document.getElementById('canvas2');
     c.style.cursor = 'url('+empty.toDataURL()+')';
+    c2.style.cursor = 'url('+empty.toDataURL()+')';
     ctx = c.getContext('2d');
+    ctx2 = c2.getContext('2d');
 
     init_empty();
     init_sidelength(calc_sidelength());
