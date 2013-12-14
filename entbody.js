@@ -10,7 +10,7 @@ var type=[];
 var ivor=[];
 var ivoravg;
 
-var flick_goal = 40;
+var flick_goal = 80;
 var flick_speed = 1e-3;
 var flick_noise = 6e3;
 var flick = flick_goal;
@@ -51,6 +51,18 @@ var showforce = true;
 
 function rgb(r,g,b) {
     return 'rgb('+r+','+g+','+b+')';
+}
+
+var sound = new Howl({
+    urls: ['http://runat.me/tmp/creak.mp3'],
+    autoplay: false,
+    loop: false,
+    volume: 0.5,
+    onend: function() {}
+});
+
+function playsound(){
+   sound.play();
 }
 
 function update(){
@@ -146,8 +158,8 @@ function draw_all(x, y, r, lx, ly, cw, ch, ctx, ctx2) {
 
     var radgrad = ctx.createRadialGradient(sx*x[0], sy*y[0], 0, sx*x[0], sy*y[0], flick);
     radgrad.addColorStop(0, 'rgba(150,0,0,0.0)');
-    radgrad.addColorStop(0.5, 'rgba(0,0,0,150)');
-    radgrad.addColorStop(1, 'rgba(0,0,0,255)');
+    radgrad.addColorStop(0.4, 'rgba(10,0,0,100)');
+    radgrad.addColorStop(1, 'rgba(0,0,0,200)');
     ctx2.fillStyle = radgrad;
     ctx2.fillRect(0,0,c.height,c.width);
 }
@@ -266,6 +278,7 @@ var init = function() {
         if (ev.keyCode == 65){ keys[2] = 0; } //left
         if (ev.keyCode == 68){ keys[3] = 0; } //right
         if (ev.keyCode == 32){ ev.preventDefault(); update_pause(); } //space is pause
+        if (ev.keyCode == 66){ playsound(); }
     }, false);
 
     document.body.addEventListener('keydown', function(ev) {
