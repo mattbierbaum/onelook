@@ -10,7 +10,7 @@ var type=[];
 var ivor=[];
 var ivoravg;
 
-var flick_goal = 40;
+var flick_goal = 100;
 var flick_speed = 1e-3;
 var flick_noise = 6e3;
 var flick = flick_goal;
@@ -25,7 +25,7 @@ var NMAX = 50;
 var cells = [];
 var count = [];
 
-var radius = 1.0;
+var radius = 0.2;
 var R = 2*radius;
 var gdt = 0.1;
 
@@ -51,6 +51,14 @@ var showforce = true;
 
 function rgb(r,g,b) {
     return 'rgb('+r+','+g+','+b+')';
+}
+
+function load_level() {
+  // Load the level onto the canvas
+  var levelcanvas = document.getElementById('level');  
+  var context = canvas.getContext('2d');
+  var img = document.getElementById('testlevel');
+  context.drawImage(img,0,0);
 }
 
 function update(){
@@ -107,6 +115,8 @@ function update(){
 }
 
 function draw_all(x, y, r, lx, ly, cw, ch, ctx, ctx2) {
+    load_level();
+
     var sx = cw/lx;
     var sy = ch/ly;
     var ss = Math.sqrt(sx*sy);
@@ -139,6 +149,7 @@ function draw_all(x, y, r, lx, ly, cw, ch, ctx, ctx2) {
         ctx.fill();
     }
 
+
     flick = flick + flick_speed * (flick * ( flick_goal - flick) + flick_noise * (2*Math.random()-1));
 
     flick = Math.min(flick, 100);
@@ -149,12 +160,12 @@ function draw_all(x, y, r, lx, ly, cw, ch, ctx, ctx2) {
     radgrad.addColorStop(0.5, 'rgba(0,0,0,150)');
     radgrad.addColorStop(1, 'rgba(0,0,0,255)');
     ctx2.fillStyle = radgrad;
-    ctx2.fillRect(0,0,c.height,c.width);
+    ctx2.fillRect(0,0,c.width,c.height);
 }
 
 function init_sidelength(L){
-    lx = L;//
-    ly = lx;
+    lx = 640;//
+    ly = 400;
 
     /* initialize the neighborlist */
     size[0] = Math.floor(lx / R);
@@ -212,6 +223,10 @@ function init_circle(){
         vx[i] = vhappy*(Math.random()-0.5);
         vy[i] = vhappy*(Math.random()-0.5);
     }
+
+    // hack red guys position
+    x[0] = 5;
+    y[0] = 47;
 }
 
 function update_pause(){
@@ -228,7 +243,7 @@ function update_pause(){
 ================================================================================*/
 var tick = function(T) {
     if (dodraw == true) {
-        ctx.fillStyle = 'rgba(200,200,200,0.2)';
+        ctx.fillStyle = 'rgba(200,200,200,0.0)';
         ctx.clearRect(0, 0, c.width, c.height);
         ctx.fillRect(0,0,c.width,c.height);
         ctx2.fillStyle = 'rgba(0,0,0,0.0)';
@@ -277,6 +292,7 @@ var init = function() {
 
     registerAnimationRequest();
     requestAnimationFrame(tick, c);
+
 };
 window.onload = init;
 
