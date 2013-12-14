@@ -10,13 +10,20 @@ var type=[];
 var ivor=[];
 var ivoravg;
 
-var flick_goal = 100;
+var flick_goal = 70.;
 var flick_speed = 1e-3;
 var flick_noise = 6e3;
 var flick = flick_goal;
 
 // things we can change
-var n = 5;
+var n = 1;
+
+// sizes
+var LX = 640;
+var LY = 400;
+
+var INITX = 70;
+var INITY = 350;
 
 // neighborlist stuff
 var lx, ly;
@@ -25,7 +32,7 @@ var NMAX = 50;
 var cells = [];
 var count = [];
 
-var radius = 0.2;
+var radius = 5.0;
 var R = 2*radius;
 var gdt = 0.1;
 
@@ -53,12 +60,27 @@ function rgb(r,g,b) {
     return 'rgb('+r+','+g+','+b+')';
 }
 
+var img;
+var levelcanvas;
+var levelctx;
+var imgd;
+
 function load_level() {
   // Load the level onto the canvas
-  var levelcanvas = document.getElementById('level');  
-  var context = canvas.getContext('2d');
-  var img = document.getElementById('testlevel');
-  context.drawImage(img,0,0);
+  levelcanvas = document.getElementById('level');
+  levelctx = levelcanvas.getContext('2d');
+  img = document.getElementById('testlevel');
+  levelctx.drawImage(img,0,0);
+  imgd = levelctx.getImageData(0,0,LX,LY).data;
+}
+
+
+function is_level_wall(xx,yy) {
+  var i = 4*Math.floor(xx) + 4*LX*Math.floor(yy);
+  if (imgd[i] == 0 && imgd[i+1] ==0 && imgd[i+2] == 0) {
+      return true;
+  }
+  return false;
 }
 
 function update(){
@@ -98,7 +120,7 @@ function update(){
         vx[i] += fx[i] * gdt;
         vy[i] += fy[i] * gdt;
 
-        var vmax = 1.0;
+        var vmax = 30.0;
         if (vx[i] > vmax)  vx[i] = vmax;
         if (vx[i] < -vmax) vx[i] = -vmax;
         if (vy[i] > vmax)  vy[i] = vmax;
@@ -106,11 +128,19 @@ function update(){
 
         x[i] += vx[i] * gdt;
         y[i] += vy[i] * gdt;
+        
+        if (is_level_wall(x[i],y[i])) {
+            x[i] -= vx[i] * gdt;
+            y[i] -= vy[i] * gdt;
+            vx[i] = 0;
+            vy[i] = 0;
+        }
     
         if (x[i] >= lx){x[i] = 2*lx-x[i]; vx[i] *= -1;}
         if (x[i] < 0)  {x[i] = -x[i];     vx[i] *= -1;}
         if (y[i] >= ly){y[i] = 2*ly-y[i]; vy[i] *= -1;}
         if (y[i] < 0)  {y[i] = -y[i];     vy[i] *= -1;}
+
     }
 }
 
@@ -156,16 +186,16 @@ function draw_all(x, y, r, lx, ly, cw, ch, ctx, ctx2) {
     flick = Math.max(flick, 30);
 
     var radgrad = ctx.createRadialGradient(sx*x[0], sy*y[0], 0, sx*x[0], sy*y[0], flick);
-    radgrad.addColorStop(0, 'rgba(150,0,0,0.0)');
+    radgrad.addColorStop(0, 'rgba(0,0,0,0.0)');
     radgrad.addColorStop(0.5, 'rgba(0,0,0,150)');
-    radgrad.addColorStop(1, 'rgba(0,0,0,255)');
+    radgrad.addColorStop(1, 'rgba(0,0,0,1.0)');
     ctx2.fillStyle = radgrad;
     ctx2.fillRect(0,0,c.width,c.height);
 }
 
 function init_sidelength(L){
-    lx = 640;//
-    ly = 400;
+    lx = LX;//
+    ly = LY;
 
     /* initialize the neighborlist */
     size[0] = Math.floor(lx / R);
@@ -225,8 +255,8 @@ function init_circle(){
     }
 
     // hack red guys position
-    x[0] = 5;
-    y[0] = 47;
+    x[0] = INITX;
+    y[0] = INITY;
 }
 
 function update_pause(){
@@ -249,12 +279,12 @@ var tick = function(T) {
         ctx2.fillStyle = 'rgba(0,0,0,0.0)';
         ctx2.clearRect(0, 0, c.width, c.height);
         ctx2.fillRect(0,0,c.width,c.height);
+        draw_all(x, y, r, lx, ly, c.width, c.height, ctx, ctx2);
         for (var i=0; i<frameskip; i++){
             frame++;
             update();
         }
  
-        draw_all(x, y, r, lx, ly, c.width, c.height, ctx, ctx2);
         requestAnimationFrame(tick, c);
     }
 };
@@ -292,7 +322,6 @@ var init = function() {
 
     registerAnimationRequest();
     requestAnimationFrame(tick, c);
-
 };
 window.onload = init;
 
