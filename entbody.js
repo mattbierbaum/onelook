@@ -28,6 +28,7 @@ var n = 9;
 var radius = 5.0;
 var R = 2*radius;
 var gdt = 0.05;
+var time = 0;
 
 // Monster params
 var monster_cutoff2 = 4*radius*radius;
@@ -60,22 +61,108 @@ function rgb(r,g,b) {
     return 'rgb('+r+','+g+','+b+')';
 }
 
-var sound = new Howl({
-    urls: ['http://runat.me/tmp/onelook/sounds/party.mp3'],
-    autoplay: false,
-    loop: false,
-    volume: 0.5,
-    onend: function() {}
-});
+var pangle = Math.atan2(-1, 0);
 
-function play_sound_relative(mus, posx, posy, plx, ply, vol){
+var audio_curr;
+var audio_playing;
+var audio_next_time;
+var audio_list;
 
+var audio_danger = false;
+var audio_effects;
+var music;
+
+function audio_init(){
+    audio_curr = new Array(n);
+    audio_playing = new Array(n);
+    audio_next_time = new Array(n);
+    audio_list = new Array(n);
+
+    audio_effects = [[], [], 
+        [
+            'sounds/monster_deep1.mp3',
+            'sounds/monster_deep2.mp3',
+            'sounds/monster_deep3.mp3',
+        ], 
+        [
+            'sounds/monster_growl3.mp3',
+            'sounds/monster_growl4.mp3',
+            'sounds/monster_growl5.mp3',
+        ], 
+        [
+            'sounds/monster_deep1.mp3',
+            'sounds/monster_deep2.mp3',
+            'sounds/monster_deep3.mp3',
+            'sounds/monster_growl3.mp3',
+            'sounds/monster_growl4.mp3',
+            'sounds/monster_growl5.mp3',
+        ]
+        ];
+
+    for (var i=1; i<n; i++){
+        audio_list[i] = new Array();
+        for (var j=0; j<audio_effects[type[i]].length; j++){
+            audio_list[i].push(new Howl(
+                {urls: [audio_effects[type[i]][j]],
+                 onend: (function(i) {
+                     return function(){
+                        var relx = x[i] - x[0]; 
+                        var rely = y[i] - y[i];
+                        var dist = relx*relx + rely*rely;
+                        audio_playing[i] = 0;
+                        audio_next_time[i] = Math.min(
+                            time + Math.sqrt(dist*Math.random()),
+                            30);
+                        audio_curr[i] = Math.floor(
+                            audio_effects[type[i]].length*Math.random()
+                        );
+                    };
+                   })(i)
+                }
+            ));
+        }
+        audio_playing[i] = 0;
+        audio_next_time[i] = 0;
+        audio_curr[i] = 0;
+    }
+
+    music = new Howl({
+        urls: ['sounds/music_slow.mp3'],
+        autoplay: false,
+        loop: true,
+        volume: 0.5,
+        buffer: true,
+        onend: function() {}
+    });
+    music.play();
 }
 
-function playsound(){
-    sound.pos3d(0.5, 0, 0); 
-    sound.play();
+function audio_sound_relative(){
+    for (var i=1; i<n; i++){
+        if (audio_playing[i]){
+            var vlen = Math.sqrt(vx[0]*vx[0] + vy[0]*vy[0]);
+
+            var relx = x[i] - x[0];
+            var rely = y[i] - y[0];
+
+            var dist2 = relx*relx + rely*rely;
+            var rangle = Math.atan2(rely, relx);
+
+            audio_list[i][audio_curr[i]].pos3d(-0.5*Math.sin(pangle-rangle), 0, 0);
+            audio_list[i][audio_curr[i]].volume(4*Math.sqrt(radius*radius / dist2));
+        }
+    }
 }
+
+function audio_sound_update(){
+    for (var i=1; i<n; i++){
+        if (time > audio_next_time[i] && audio_playing[i] == 0){
+            audio_playing[i] = 1;
+            audio_list[i][audio_curr[i]].play();
+        }
+    }
+}
+
 var img;
 var levelcanvas;
 var levelctx;
@@ -144,6 +231,10 @@ function is_game_over(xx,yy) {
 
 
 function update(){
+    audio_sound_update();
+    audio_sound_relative();
+
+    time += gdt;
     for (var i=0; i<n; i++) {
         fx[i] = 0.0; 
         fy[i] = 0.0;
@@ -293,9 +384,11 @@ function init_empty(){
 function update_pause(){
     if (dodraw == true){
         dodraw = false;
+        music.pause();
     } else {
         requestAnimationFrame(tick, c);
         dodraw = true;
+        music.play();
     }
 }
 
@@ -332,6 +425,7 @@ var init = function() {
     ctx = c.getContext('2d');
     ctx2 = c2.getContext('2d');
 
+    audio_init();
     init_empty();
     init_level();
 
