@@ -182,7 +182,6 @@ function audio_init(){
         autoplay: false,
         loop: false
     });
-    lightswitch.play();
 
     audio_crumb = new Howl({
         urls: ['sounds/crumb.mp3'],
@@ -236,8 +235,9 @@ function audio_sound_relative(){
             var dist2 = relx*relx + rely*rely;
             var rangle = Math.atan2(rely, relx);
 
+            var fac = (type[i] == 4)?6:16;
             audio_list[i][audio_curr[i]].pos3d(-0.5*Math.sin(pangle-rangle), 0, 0);
-            audio_list[i][audio_curr[i]].volume(16*(radius*radius / dist2));
+            audio_list[i][audio_curr[i]].volume(fac*(radius*radius / dist2));
         }
     }
 }
@@ -380,6 +380,7 @@ function use_look() {
         num_look -= 1;
         global_alpha = 1.;
     }
+    lightswitch.play();
 }
 
 function update(){
