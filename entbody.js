@@ -70,7 +70,17 @@ var audio_list;
 
 var audio_danger = false;
 var audio_effects;
+var togglemusic = false;
+var playmusic = true;
 var music;
+
+var NLAVA = 30;
+var audio_lava_list;
+
+var NSTEPS = 4;
+var audio_steps;
+var step_size = radius*4;
+var last_step = [0,0,0];
 
 function audio_init(){
     audio_curr = new Array(n);
@@ -128,6 +138,17 @@ function audio_init(){
         audio_curr[i] = 0;
     }
 
+
+    audio_steps = new Array(NSTEPS);
+    for (var i=0; i<NSTEPS; i++){
+        audio_steps[i] = new Howl({
+            urls: ['sounds/step_'+(i+1)+".mp3"],
+            autoplay: false,
+            loop: false,
+            volume: 0.15,
+        });
+    }
+
     music = new Howl({
         urls: ['sounds/music_slow.mp3'],
         autoplay: false,
@@ -139,11 +160,39 @@ function audio_init(){
     music.play();
 }
 
+function audio_lava_points(img){
+    audio_lava_list = new Array();
+
+    while (audio_lava_list.length < NLAVA){
+        tx = Math.floor(LX*Math.random());
+        ty = Math.floor(LY*Math.random());
+        if (is_level_lava(tx, ty))
+            audio_lava_list.push([tx, ty, new Howl({
+                    urls: ['sounds/lava2.mp3'],
+                    autoplay: true,
+                    loop: true,
+                    volume: 0.0,
+                    buffer: true,
+                })
+            ]);
+    }
+}
+
+function pause_lava(){
+    for (var i=0; i<NLAVA; i++){
+        audio_lava_list[i][2].pause();
+    }
+}
+
+function unpause_lava(){
+    for (var i=0; i<NLAVA; i++){
+        audio_lava_list[i][2].play();
+    }
+}
+
 function audio_sound_relative(){
     for (var i=1; i<n; i++){
         if (audio_playing[i]){
-            var vlen = Math.sqrt(vx[0]*vx[0] + vy[0]*vy[0]);
-
             var relx = x[i] - x[0];
             var rely = y[i] - y[0];
 
@@ -157,11 +206,33 @@ function audio_sound_relative(){
 }
 
 function audio_sound_update(){
+    if (togglemusic){
+        if (playmusic){
+            playmusic = false;
+            music.pause();
+        } else {
+            playmusic = true;
+            music.play();
+        }
+        togglemusic = false;
+    }
+
     for (var i=1; i<n; i++){
         if (time > audio_next_time[i] && audio_playing[i] == 0){
             audio_playing[i] = 1;
             audio_list[i][audio_curr[i]].play();
         }
+    }
+
+    for (var i=0; i<audio_lava_list.length; i++){
+        var relx = audio_lava_list[i][0] - x[0];
+        var rely = audio_lava_list[i][1] - y[0];
+
+        var dist2 = relx*relx + rely*rely;
+        var rangle = Math.atan2(rely, relx);
+
+        audio_lava_list[i][2].pos3d(-0.5*Math.sin(pangle-rangle), 0, 0);
+        audio_lava_list[i][2].volume(3*(radius*radius / dist2));
     }
 }
 
@@ -177,6 +248,7 @@ function init_level() {
   img = document.getElementById('testlevel');
   levelctx.drawImage(img,0,0);
   imgd = levelctx.getImageData(0,0,LX,LY).data;
+  audio_lava_points(imgd);
 }
 
 
@@ -277,6 +349,15 @@ function update(){
                 }
             }
         }
+    }
+
+    var laststep = Math.sqrt((last_step[0] - x[0])*(last_step[0] - x[0]) +
+                (last_step[1] - y[0])*(last_step[1] - y[0]));
+    if (laststep > step_size){
+        audio_steps[last_step[2]].play();
+        last_step[0] = x[0];
+        last_step[1] = y[0];
+        last_step[2] = (last_step[2]+1) % NSTEPS;
     }
 
     // Do the time step integration
@@ -387,10 +468,12 @@ function update_pause(){
     if (dodraw == true){
         dodraw = false;
         music.pause();
+        pause_lava();
     } else {
         requestAnimationFrame(tick, c);
         dodraw = true;
         music.play();
+        unpause_lava();
     }
 }
 
@@ -438,6 +521,7 @@ var init = function() {
         if (ev.keyCode == 68){ keys[3] = 0; } //right
         if (ev.keyCode == 32){ ev.preventDefault(); update_pause(); } //space is pause
         if (ev.keyCode == 66){ playsound(); }
+        if (ev.keyCode == 77){ togglemusic = true; }
     }, false);
 
     document.body.addEventListener('keydown', function(ev) {
