@@ -31,7 +31,7 @@ var n = 9;
 var radius = 5.0;
 var R = 2*radius;
 var gdt = 0.03;
-var time = -10.;
+var time = 0.;
 var fade_in_time = 10.;
 
 // Monster params
@@ -70,6 +70,10 @@ var crumb_flick_goal = 5.0;
 var crumbx = [];
 var crumby = [];
 var crumbflick = [];
+
+var num_look = 1;
+var look_decay = 0.99;
+var global_alpha = 0.0;
 
 function rgb(r,g,b) {
     return 'rgb('+r+','+g+','+b+')';
@@ -373,25 +377,31 @@ function use_crumb() {
     audio_crumb.play();
 }
 
+function use_look() {
+    if (num_look > 0) {
+        num_look -= 1;
+        global_alpha = 1.;
+    }
+}
 
 function update(){
     audio_sound_update();
     audio_sound_relative();
 
     time += gdt;
-    if (time < 0) {
-        // hack for showing level
-        var level = -time/fade_in_time;
-        level = Math.max(0,level);
-        level = Math.min(level,1);
-        level = 1-level;
-        ctx3.clearRect(0,0,100,10);
-        ctx3.fillText("you get one look...",50,10);
-        ctx2.clearRect(0,0,LX,LY);
-        ctx2.fillStyle = 'rgba(0,0,0,' + level + ')';
-        ctx2.fillRect(0,0,LX,LY);
-        return 
-    }
+    // if (time < 0) {
+    //     // hack for showing level
+    //     var level = -time/fade_in_time;
+    //     level = Math.max(0,level);
+    //     level = Math.min(level,1);
+    //     level = 1-level;
+    //     ctx3.clearRect(0,0,100,10);
+    //     ctx3.fillText("you get one look...",50,10);
+    //     ctx2.clearRect(0,0,LX,LY);
+    //     ctx2.fillStyle = 'rgba(0,0,0,' + level + ')';
+    //     ctx2.fillRect(0,0,LX,LY);
+    //     return 
+    // }
     for (var i=0; i<n; i++) {
         fx[i] = 0.0; 
         fy[i] = 0.0;
@@ -514,7 +524,7 @@ function draw_all(x, y, r, LX, LY, ctx, ctx2) {
     // draw text
     ctx3.clearRect(0,0,LX,LY);
     ctx3.fillStyle = rgb(255,255,255);
-    ctx3.fillText("lightbombs:" + num_light_bomb + ' crumbs:' + num_crumb, 5, LY-5);
+    ctx3.fillText("lightbombs:" + num_light_bomb + ' crumbs:' + num_crumb + ' looks:' + num_look, 5, LY-5);
 
     flick = flick + flick_speed * (flick * ( flick_goal - flick) + flick_noise * ((2*Math.random()-1)+(2*Math.random()-1)+(2*Math.random()-1)));
 
@@ -522,7 +532,11 @@ function draw_all(x, y, r, LX, LY, ctx, ctx2) {
     flick = Math.max(flick, flick_min);
 
     ctx2.globalCompositeOperation = 'source-over';
-    ctx2.fillStyle = rgb(0,0,0);
+    global_alpha *= look_decay;
+    global_alpha = Math.min( global_alpha , 1.0);
+    global_alpha = Math.max(global_alpha, 0.);
+    ctx2.fillStyle = "rgba(0,0,0," + (1.-global_alpha) + ")";
+    // ctx2.fillStyle = "rgba(0,0,0,1.0)";
     ctx2.fillRect(0,0,LX,LY);
     draw_gauss(flick, x[0], y[0]);
     draw_crumbs();
@@ -536,7 +550,7 @@ function draw_gauss(flick,xx,yy) {
     radgrad.addColorStop(0, 'rgba(0,0,0,1.0)');
     // GRADIENT
     radgrad.addColorStop(0.5, 'rgba(0,0,0,0.5)');
-    radgrad.addColorStop(1, 'rgba(0,0,0,0.0)');
+    radgrad.addColorStop(1, 'rgba(0,0,0,0)');
     ctx2.fillStyle = radgrad;
     ctx2.fillRect(xx-flick-1,yy-flick-1,2*flick+2,2*flick+2);
 }
@@ -648,6 +662,7 @@ var init = function() {
         if (ev.keyCode == 77){ togglemusic = true; }
         if (ev.keyCode == 49){ use_light_bomb(); }
         if (ev.keyCode == 50){ use_crumb(); }
+        if (ev.keyCode == 51){ use_look(); }
         // else { console.log(ev.keyCode) }
     }, false);
 
