@@ -62,8 +62,8 @@ var docircle = true;
 var showforce = true;
 
 // items
-var num_light_bomb = 1e2;
-var num_crumb = 1e2;
+var num_light_bomb = 5;
+var num_crumb = 5;
 var crumb_radius = 2.0;
 var crumb_flick_goal = 20.0;
 
