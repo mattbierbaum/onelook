@@ -325,23 +325,13 @@ function draw_gauss(flick,xx,yy) {
     radgrad.addColorStop(0.5, 'rgba(0,0,0,0.5)');
     radgrad.addColorStop(1, 'rgba(0,0,0,0.0)');
     ctx2.fillStyle = radgrad;
-    // ctx2.clearRect(xx-flick,yy-flick,2*flick,2*flick);
     ctx2.fillRect(xx-flick-1,yy-flick-1,2*flick+2,2*flick+2);
 }
 
 function draw_crumbs() {
     for (var i=0; i<crumbx.length; i++) {
-        // ctx2.clearRect(crumbx[i]-crumb_flick,crumby[i]-crumb_flick,2*crumb_flick,2*crumb_flick);
         crumbflick[i] = crumbflick[i] + flick_speed * (crumbflick[i] * ( crumb_flick_goal - crumbflick[i]) + flick_noise * (2*Math.random()-1)*(2*Math.random()-1)*(2*Math.random()-1));
         draw_gauss(crumbflick[i], crumbx[i], crumby[i]);
-        // ctx2.fillStyle = 'rgba(255,255,255,0.3)';
-        // ctx2.beginPath();
-        // ctx2.arc(crumbx[i], crumby[i], crumb_flick, 0, 2*Math.PI, true);
-        // ctx2.lineWidth = 1;
-        // ctx2.strokeStyle = 'rgba(0,0,0,0.0)';
-        // ctx2.stroke();
-        // ctx2.fill();
-
         ctx2.globalCompositeOperation = 'source-over';
         ctx2.fillStyle = rgb(0,255,0);
         ctx2.beginPath();
