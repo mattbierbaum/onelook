@@ -9,7 +9,7 @@ var r=[];
 var ivor=[];
 var ivoravg;
 
-var flick_goal = 20.;
+var flick_goal = 30.;
 var flick_speed = 1e-3;
 var flick_noise = 6e3;
 var flick = flick_goal;
@@ -27,13 +27,14 @@ var n = 9;
 
 var radius = 5.0;
 var R = 2*radius;
-var gdt = 0.1;
+var gdt = 0.05;
 
 // Monster params
 var monster_cutoff2 = 4*radius*radius;
 var walking_speed = 4e2;
 var sleeper_r2 = 30.*30.;
 var sleeper_force_mag = 0.2;
+var sleeper_max_v2 = 3*3;
 
 
 
@@ -42,9 +43,7 @@ var epsilon = 100;
 var noise   = 0.0;
 
 // some other constants that are 1
-var vhappy = 0.0;
 var damp   = 0.3;
-var frac   = 0.01;
 
 // display variables
 var c;
@@ -82,13 +81,19 @@ var levelcanvas;
 var levelctx;
 var imgd;
 
-function load_level() {
-  // Load the level onto the canvas
+function init_level() {
+  /// initialize the level layer
   levelcanvas = document.getElementById('level');
   levelctx = levelcanvas.getContext('2d');
   img = document.getElementById('testlevel');
   levelctx.drawImage(img,0,0);
   imgd = levelctx.getImageData(0,0,LX,LY).data;
+}
+
+
+function load_level() {
+  // Load the level onto the canvas
+  levelctx.drawImage(img,0,0);
 }
 
 function game_over() {
@@ -103,8 +108,7 @@ function game_over() {
     fx[0] = 0.;
     fy[0] = 0.;
     keys[0] = keys[1] = keys[2] = keys[3] = 0;
-    update_pause();
-    // setTimeout(update_pause,1000);
+    setTimeout(update_pause,10);
 }
 
 function is_level_wall(xx,yy) {
@@ -172,6 +176,12 @@ function update(){
                 // give it a force towards the guy
                 fx[i] = -sleeper_force_mag * (x[i] - x[0]);
                 fy[i] = -sleeper_force_mag * (y[i] - y[0]);
+                
+                var vlen = (vx[i]*vx[i] + vy[i]*vy[i]);
+                if (vlen > sleeper_max_v2) {
+                    vx[i] = sleeper_max_v2/vlen * vx[i];
+                    vy[i] = sleeper_max_v2/vlen * vy[i];
+                }
             }
         }
     }
@@ -323,6 +333,7 @@ var init = function() {
     ctx2 = c2.getContext('2d');
 
     init_empty();
+    init_level();
 
     document.body.addEventListener('keyup', function(ev) {
         if (ev.keyCode == 87){ keys[0] = 0; } //up
@@ -353,7 +364,7 @@ function registerAnimationRequest() {
 if ( !window.requestAnimationFrame ) {
     window.requestAnimationFrame = ( function() {
       return window.webkitRequestAnimationFrame ||
-      window.mozRequestAnimationFrame || // comment out if FF4 is slow (it caps framerate at ~30fps)
+      // window.mozRequestAnimationFrame || // comment out if FF4 is slow (it caps framerate at ~30fps)
       window.oRequestAnimationFrame ||
       window.msRequestAnimationFrame ||
       function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
