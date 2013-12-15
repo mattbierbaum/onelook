@@ -22,10 +22,10 @@ var flick_dark = 1.0;
 var LX = 640;
 var LY = 400;
 
-var INITX = [70,70,140,330,300,150,330,450,330];
-var INITY = [350,150,100,200,240,50,200,300,300];
-var type = [1,2,2,2,2,3,3,3,3];
-var n = 9;
+var INITX = [70,70,140,330,300,150,330,450,330,340, 546];
+var INITY = [350,150,100,200,240,50,200,300,300,300, 49];
+var type = [1,2,2,2,2,3,3,3,3,4,4];
+var n = 11;
 // guy = 1 / sleeping = 2 / walking = 3
 
 var radius = 5.0;
@@ -48,7 +48,7 @@ var epsilon = 100;
 var noise   = 0.0;
 
 // some other constants that are 1
-var damp   = 0.3;
+var damp   = 0.5;
 
 // display variables
 var c;
@@ -120,12 +120,8 @@ function audio_init(){
             'sounds/monster_growl5.mp3',
         ], 
         [
-            'sounds/monster_deep1.mp3',
-            'sounds/monster_deep2.mp3',
-            'sounds/monster_deep3.mp3',
-            'sounds/monster_growl3.mp3',
-            'sounds/monster_growl4.mp3',
-            'sounds/monster_growl5.mp3',
+            'sounds/monster_gurggle1.mp3',
+            'sounds/monster_gurggle2.mp3',
         ]
         ];
 
@@ -208,7 +204,7 @@ function audio_lava_points(img){
                     urls: ['sounds/lava2.mp3'],
                     autoplay: true,
                     loop: true,
-                    volume: 0.0,
+                    volume: 0.01,
                     buffer: true,
                 })
             ]);
@@ -285,7 +281,9 @@ function init_level() {
   img = document.getElementById('testlevel');
   levelctx.drawImage(img,0,0);
   imgd = levelctx.getImageData(0,0,LX,LY).data;
+
   audio_lava_points(imgd);
+  ai_init(imgd, LX, LY, type);
 }
 
 
@@ -378,6 +376,8 @@ function update(){
     audio_sound_update();
     audio_sound_relative();
 
+    ai_update(x,y, vx, vy, time, LX, LY);
+
     time += gdt;
     if (time < 0) {
         // hack for showing level
@@ -448,7 +448,7 @@ function update(){
         vx[i] += fx[i] * gdt;
         vy[i] += fy[i] * gdt;
 
-        var vmax = 30.0;
+        var vmax = 50.0;
         if (vx[i] > vmax)  vx[i] = vmax;
         if (vx[i] < -vmax) vx[i] = -vmax;
         if (vy[i] > vmax)  vy[i] = vmax;
@@ -481,8 +481,12 @@ function update(){
 
 function draw_all(x, y, r, LX, LY, ctx, ctx2) {
     load_level();
+    ai_draw(x,y, time);
 
     for (var i=0; i<x.length; i++) {
+        if (type[i] == 4)
+            continue;
+
         var indx = Math.floor(x[i]/LX);
         var indy = Math.floor(y[i]/LY);
         ctx.beginPath();
@@ -527,6 +531,7 @@ function draw_all(x, y, r, LX, LY, ctx, ctx2) {
     draw_gauss(flick, x[0], y[0]);
     draw_crumbs();
     ctx2.globalCompositeOperation = 'source-over';
+
 }
 
 
