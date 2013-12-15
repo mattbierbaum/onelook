@@ -9,8 +9,8 @@ var r=[];
 var ivor=[];
 var ivoravg;
 
-var flick_goal = 30.;
-var flick_speed = 5e-4;
+var flick_goal = 20.;
+var flick_speed = 1e-4;
 var flick_noise = 6e3;
 var flick = flick_goal;
 var flick_min = 30;
@@ -30,7 +30,7 @@ var n = 9;
 
 var radius = 5.0;
 var R = 2*radius;
-var gdt = 0.05;
+var gdt = 0.03;
 var time = -10.;
 var fade_in_time = 10.;
 
@@ -65,7 +65,7 @@ var showforce = true;
 var num_light_bomb = 5;
 var num_crumb = 5;
 var crumb_radius = 2.0;
-var crumb_flick_goal = 20.0;
+var crumb_flick_goal = 5.0;
 
 var crumbx = [];
 var crumby = [];
@@ -171,7 +171,7 @@ function audio_init(){
         urls: ['sounds/music_slow.mp3'],
         autoplay: false,
         loop: true,
-        volume: 0.25,
+        volume: 0.05,
         buffer: true,
         onend: function() {}
     });
@@ -208,7 +208,7 @@ function audio_lava_points(img){
                     urls: ['sounds/lava2.mp3'],
                     autoplay: true,
                     loop: true,
-                    volume: 0.0,
+                    volume: 0.1,
                     buffer: true,
                 })
             ]);
@@ -413,8 +413,8 @@ function update(){
 
         // if it is a walking monster
         if (type[i] == 3 && vlen < 1e-1) {
-            fx[i] += walking_speed*(2*Math.random()-1)*(2*Math.random()-1)*(2*Math.random()-1);
-            fy[i] += walking_speed*(2*Math.random()-1)*(2*Math.random()-1)*(2*Math.random()-1);
+            fx[i] += walking_speed*((2*Math.random()-1)+(2*Math.random()-1)+(2*Math.random()-1));
+            fy[i] += walking_speed*((2*Math.random()-1)+(2*Math.random()-1)+(2*Math.random()-1));
         }
 
         // if it is a sleeper
@@ -516,7 +516,7 @@ function draw_all(x, y, r, LX, LY, ctx, ctx2) {
     ctx3.fillStyle = rgb(255,255,255);
     ctx3.fillText("lightbombs:" + num_light_bomb + ' crumbs:' + num_crumb, 5, LY-5);
 
-    flick = flick + flick_speed * (flick * ( flick_goal - flick) + flick_noise * (2*Math.random()-1)*(2*Math.random()-1)*(2*Math.random()-1));
+    flick = flick + flick_speed * (flick * ( flick_goal - flick) + flick_noise * ((2*Math.random()-1)+(2*Math.random()-1)+(2*Math.random()-1)));
 
     flick = Math.min(flick, flick_max);
     flick = Math.max(flick, flick_min);
@@ -543,7 +543,7 @@ function draw_gauss(flick,xx,yy) {
 
 function draw_crumbs() {
     for (var i=0; i<crumbx.length; i++) {
-        crumbflick[i] = crumbflick[i] + flick_speed * (crumbflick[i] * ( crumb_flick_goal - crumbflick[i]) + flick_noise * (2*Math.random()-1)*(2*Math.random()-1)*(2*Math.random()-1));
+        crumbflick[i] = crumbflick[i] + flick_speed * (crumbflick[i] * ( crumb_flick_goal - crumbflick[i]) + flick_noise * ((2*Math.random()-1)+(2*Math.random()-1)+(2*Math.random()-1)));
         crumbflick[i] = Math.min(crumbflick[i], flick_max);
         crumbflick[i] = Math.max(crumbflick[i], flick_min);
         draw_gauss(crumbflick[i], crumbx[i], crumby[i]);
@@ -636,9 +636,13 @@ var init = function() {
 
     document.body.addEventListener('keyup', function(ev) {
         if (ev.keyCode == 87){ keys[0] = 0; } //up
+        if (ev.keyCode == 38){ keys[0] = 0; } //up
         if (ev.keyCode == 83){ keys[1] = 0; } //down
+        if (ev.keyCode == 40){ keys[1] = 0; } //down
         if (ev.keyCode == 65){ keys[2] = 0; } //left
+        if (ev.keyCode == 37){ keys[2] = 0; } //left
         if (ev.keyCode == 68){ keys[3] = 0; } //right
+        if (ev.keyCode == 39){ keys[3] = 0; } //right
         if (ev.keyCode == 32){ ev.preventDefault(); update_pause(); } //space is pause
         if (ev.keyCode == 66){ playsound(); }
         if (ev.keyCode == 77){ togglemusic = true; }
@@ -649,9 +653,13 @@ var init = function() {
 
     document.body.addEventListener('keydown', function(ev) {
         if (ev.keyCode == 87){ keys[0] = 1; } //up
+        if (ev.keyCode == 38){ keys[0] = 1; } //up
         if (ev.keyCode == 83){ keys[1] = 1; } //down
+        if (ev.keyCode == 40){ keys[1] = 1; } //down
         if (ev.keyCode == 65){ keys[2] = 1; } //left
+        if (ev.keyCode == 37){ keys[2] = 1; } //left
         if (ev.keyCode == 68){ keys[3] = 1; } //right
+        if (ev.keyCode == 39){ keys[3] = 1; } //right
     }, false);
 
     registerAnimationRequest();
