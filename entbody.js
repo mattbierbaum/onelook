@@ -85,6 +85,8 @@ function audio_init(){
             'sounds/monster_deep3.mp3',
         ], 
         [
+            'sounds/monster_growl1.mp3',
+            'sounds/monster_growl2.mp3',
             'sounds/monster_growl3.mp3',
             'sounds/monster_growl4.mp3',
             'sounds/monster_growl5.mp3',
