@@ -63,10 +63,11 @@ var showforce = true;
 var num_light_bomb = 1e2;
 var num_crumb = 1e2;
 var crumb_radius = 2.0;
-var crumb_flick = 10.0;
+var crumb_flick_goal = 20.0;
 
 var crumbx = [];
 var crumby = [];
+var crumbflick = [];
 
 function rgb(r,g,b) {
     return 'rgb('+r+','+g+','+b+')';
@@ -180,6 +181,7 @@ function use_crumb() {
     if (num_crumb > 0) {
         crumbx.push(x[0]);
         crumby.push(y[0]);
+        crumbflick.push(crumb_flick_goal);
         num_crumb -= 1;
     }
 }
@@ -309,28 +311,29 @@ function draw_all(x, y, r, LX, LY, ctx, ctx2) {
     ctx2.globalCompositeOperation = 'source-over';
     ctx2.fillStyle = rgb(0,0,0);
     ctx2.fillRect(0,0,LX,LY);
-    draw_crumbs();
     draw_gauss(flick, x[0], y[0]);
+    draw_crumbs();
+    ctx2.globalCompositeOperation = 'source-over';
 }
 
 
 function draw_gauss(flick,xx,yy) {
-    ctx2.globalCompositeOperation = 'source-out';
+    ctx2.globalCompositeOperation = 'destination-out';
     var radgrad = ctx2.createRadialGradient(xx, yy, 0, xx, yy, flick);
-    radgrad.addColorStop(0, 'rgba(0,0,0,0.0)');
+    radgrad.addColorStop(0, 'rgba(0,0,0,1.0)');
     // GRADIENT
     radgrad.addColorStop(0.5, 'rgba(0,0,0,0.5)');
-    radgrad.addColorStop(1, 'rgba(0,0,0,' + flick_dark + ')');
+    radgrad.addColorStop(1, 'rgba(0,0,0,0.0)');
     ctx2.fillStyle = radgrad;
-    ctx2.clearRect(xx-flick,yy-flick,2*flick,2*flick);
+    // ctx2.clearRect(xx-flick,yy-flick,2*flick,2*flick);
     ctx2.fillRect(xx-flick-1,yy-flick-1,2*flick+2,2*flick+2);
 }
 
 function draw_crumbs() {
     for (var i=0; i<crumbx.length; i++) {
-        // ctx2.globalCompositeOperation = 'xor';
         // ctx2.clearRect(crumbx[i]-crumb_flick,crumby[i]-crumb_flick,2*crumb_flick,2*crumb_flick);
-        draw_gauss(crumb_flick, crumbx[i], crumby[i]);
+        crumbflick[i] = crumbflick[i] + flick_speed * (crumbflick[i] * ( crumb_flick_goal - crumbflick[i]) + flick_noise * (2*Math.random()-1)*(2*Math.random()-1)*(2*Math.random()-1));
+        draw_gauss(crumbflick[i], crumbx[i], crumby[i]);
         // ctx2.fillStyle = 'rgba(255,255,255,0.3)';
         // ctx2.beginPath();
         // ctx2.arc(crumbx[i], crumby[i], crumb_flick, 0, 2*Math.PI, true);
@@ -339,6 +342,7 @@ function draw_crumbs() {
         // ctx2.stroke();
         // ctx2.fill();
 
+        ctx2.globalCompositeOperation = 'source-over';
         ctx2.fillStyle = rgb(0,255,0);
         ctx2.beginPath();
         ctx2.arc(crumbx[i], crumby[i], crumb_radius, 0, 2*Math.PI, true);
@@ -365,6 +369,10 @@ function init_empty(){
         fx.push(0.0);
         fy.push(0.0);
     }
+
+    crumbx = [];
+    crumby = [];
+    crumbflick = [];
 }
 
 
