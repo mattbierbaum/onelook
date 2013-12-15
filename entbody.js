@@ -31,7 +31,8 @@ var n = 9;
 var radius = 5.0;
 var R = 2*radius;
 var gdt = 0.05;
-var time = 0;
+var time = -10.;
+var fade_in_time = 10.;
 
 // Monster params
 var monster_cutoff2 = 4*radius*radius;
@@ -378,6 +379,19 @@ function update(){
     audio_sound_relative();
 
     time += gdt;
+    if (time < 0) {
+        // hack for showing level
+        var level = -time/fade_in_time;
+        level = Math.max(0,level);
+        level = Math.min(level,1);
+        level = 1-level;
+        ctx3.clearRect(0,0,100,10);
+        ctx3.fillText("you get one look...",50,10);
+        ctx2.clearRect(0,0,LX,LY);
+        ctx2.fillStyle = 'rgba(0,0,0,' + level + ')';
+        ctx2.fillRect(0,0,LX,LY);
+        return 
+    }
     for (var i=0; i<n; i++) {
         fx[i] = 0.0; 
         fy[i] = 0.0;
