@@ -73,6 +73,7 @@ var audio_effects;
 var togglemusic = false;
 var playmusic = true;
 var music;
+var lightswitch;
 
 var NLAVA = 30;
 var audio_lava_list;
@@ -158,7 +159,15 @@ function audio_init(){
         onend: function() {}
     });
     music.play();
+
+    lightswitch = new Howl({
+        urls: ['sounds/lightswitch.mp3'],
+        autoplay: false,
+        loop: false
+    });
+    lightswitch.play();
 }
+
 
 function audio_lava_points(img){
     audio_lava_list = new Array();
