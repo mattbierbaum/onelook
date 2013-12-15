@@ -48,7 +48,7 @@ var epsilon = 100;
 var noise   = 0.0;
 
 // some other constants that are 1
-var damp   = 0.5;
+var damp   = 0.3;
 
 // display variables
 var c;
@@ -171,7 +171,7 @@ function audio_init(){
         urls: ['sounds/music_slow.mp3'],
         autoplay: false,
         loop: true,
-        volume: 0.05,
+        volume: 0.13,
         buffer: true,
         onend: function() {}
     });
@@ -208,7 +208,7 @@ function audio_lava_points(img){
                     urls: ['sounds/lava2.mp3'],
                     autoplay: true,
                     loop: true,
-                    volume: 0.1,
+                    volume: 0.01,
                     buffer: true,
                 })
             ]);
