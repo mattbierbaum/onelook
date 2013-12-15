@@ -530,6 +530,8 @@ function draw_gauss(flick,xx,yy) {
 function draw_crumbs() {
     for (var i=0; i<crumbx.length; i++) {
         crumbflick[i] = crumbflick[i] + flick_speed * (crumbflick[i] * ( crumb_flick_goal - crumbflick[i]) + flick_noise * (2*Math.random()-1)*(2*Math.random()-1)*(2*Math.random()-1));
+        crumbflick[i] = Math.min(crumbflick[i], flick_max);
+        crumbflick[i] = Math.max(crumbflick[i], flick_min);
         draw_gauss(crumbflick[i], crumbx[i], crumby[i]);
         ctx2.globalCompositeOperation = 'source-over';
         ctx2.fillStyle = rgb(0,255,0);
