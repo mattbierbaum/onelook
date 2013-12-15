@@ -96,6 +96,9 @@ var audio_steps;
 var step_size = radius*4;
 var last_step = [0,0,0];
 
+var audio_crumb;
+var audio_lightbomb;
+
 function audio_init(){
     audio_curr = new Array(n);
     audio_playing = new Array(n);
@@ -179,6 +182,17 @@ function audio_init(){
         loop: false
     });
     lightswitch.play();
+
+    audio_crumb = new Howl({
+        urls: ['sounds/crumb.mp3'],
+        autoplay: false,
+        loop: false
+    });
+    audio_lightbomb = new Howl({
+        urls: ['sounds/lightbomb.mp3'],
+        autoplay: false,
+        loop: false
+    });
 }
 
 
@@ -344,6 +358,7 @@ function use_light_bomb() {
         flick = 0.5*1./flick_speed;
         num_light_bomb -= 1;
     }
+    audio_lightbomb.play();
 }
 
 
@@ -354,6 +369,7 @@ function use_crumb() {
         crumbflick.push(crumb_flick_goal);
         num_crumb -= 1;
     }
+    audio_crumb.play();
 }
 
 
