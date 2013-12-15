@@ -130,7 +130,7 @@ function audio_init(){
         urls: ['sounds/music_slow.mp3'],
         autoplay: false,
         loop: true,
-        volume: 0.5,
+        volume: 0.25,
         buffer: true,
         onend: function() {}
     });
@@ -149,7 +149,7 @@ function audio_sound_relative(){
             var rangle = Math.atan2(rely, relx);
 
             audio_list[i][audio_curr[i]].pos3d(-0.5*Math.sin(pangle-rangle), 0, 0);
-            audio_list[i][audio_curr[i]].volume(4*Math.sqrt(radius*radius / dist2));
+            audio_list[i][audio_curr[i]].volume(16*(radius*radius / dist2));
         }
     }
 }
