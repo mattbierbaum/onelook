@@ -10,9 +10,12 @@ var ivor=[];
 var ivoravg;
 
 var flick_goal = 30.;
-var flick_speed = 1e-3;
+var flick_speed = 5e-4;
 var flick_noise = 6e3;
 var flick = flick_goal;
+var flick_min = 30;
+var flick_max = 1e8;
+var flick_dark = 1.0;
 
 
 // sizes
@@ -34,7 +37,7 @@ var monster_cutoff2 = 4*radius*radius;
 var walking_speed = 4e2;
 var sleeper_r2 = 30.*30.;
 var sleeper_force_mag = 0.2;
-var sleeper_max_v2 = 3*3;
+var sleeper_max_v2 = 4*4;
 
 
 
@@ -55,6 +58,15 @@ var frameskip = 2;
 var dodraw = true;
 var docircle = true;
 var showforce = true;
+
+// items
+var num_light_bomb = 1e2;
+var num_crumb = 1e2;
+var crumb_radius = 2.0;
+var crumb_flick = 10.0;
+
+var crumbx = [];
+var crumby = [];
 
 function rgb(r,g,b) {
     return 'rgb('+r+','+g+','+b+')';
@@ -111,6 +123,10 @@ function game_over() {
     setTimeout(update_pause,10);
 }
 
+function game_won() {
+    alert("You won!");
+}
+
 function is_level_wall(xx,yy) {
   var i = 4*Math.floor(xx) + 4*LX*Math.floor(yy);
   if (imgd[i] == 0 && imgd[i+1] ==0 && imgd[i+2] == 0) {
@@ -140,6 +156,32 @@ function is_game_over(xx,yy) {
     if (is_level_lava(xx,yy)) return true;
     if (is_monster(xx,yy)) return true;
     return false;
+}
+
+function is_game_won(xx,yy) {
+  var i = 4*Math.floor(xx) + 4*LX*Math.floor(yy);
+  if (imgd[i] == 95 && imgd[i+1] == 0 && imgd[i+2] == 255) {
+      return true;
+  }
+  return false;
+}
+
+// ITEMS
+
+function use_light_bomb() {
+    if (num_light_bomb > 0) {
+        flick = 0.5*1./flick_speed;
+        num_light_bomb -= 1;
+    }
+}
+
+
+function use_crumb() {
+    if (num_crumb > 0) {
+        crumbx.push(x[0]);
+        crumby.push(y[0]);
+        num_crumb -= 1;
+    }
 }
 
 
@@ -217,19 +259,19 @@ function update(){
     if (is_game_over(x[0],y[0])) {
         game_over();
     }
+    if (is_game_won(x[0],y[0])) {
+        game_won();
+    }
 }
 
-function draw_all(x, y, r, LX, LY, cw, ch, ctx, ctx2) {
+function draw_all(x, y, r, LX, LY, ctx, ctx2) {
     load_level();
 
-    var sx = cw/LX;
-    var sy = ch/LY;
-    var ss = Math.sqrt(sx*sy);
     for (var i=0; i<x.length; i++) {
         var indx = Math.floor(x[i]/LX);
         var indy = Math.floor(y[i]/LY);
         ctx.beginPath();
-        ctx.arc(sx*x[i], sy*y[i], ss*r[i], 0, 2*Math.PI, true);
+        ctx.arc(x[i], y[i], r[i], 0, 2*Math.PI, true);
         ctx.lineWidth = 1;
         ctx.strokeStyle = "#000000";
         ctx.stroke();
@@ -254,22 +296,58 @@ function draw_all(x, y, r, LX, LY, cw, ch, ctx, ctx2) {
         ctx.fill();
     }
 
+    // draw text
+    ctx3.clearRect(0,0,LX,LY);
+    ctx3.fillStyle = rgb(255,255,255);
+    ctx3.fillText("lightbombs:" + num_light_bomb + ' crumbs:' + num_crumb, 5, LY-5);
 
     flick = flick + flick_speed * (flick * ( flick_goal - flick) + flick_noise * (2*Math.random()-1)*(2*Math.random()-1)*(2*Math.random()-1));
 
-    flick = Math.min(flick, 100);
-    flick = Math.max(flick, 30);
+    flick = Math.min(flick, flick_max);
+    flick = Math.max(flick, flick_min);
 
-    var radgrad = ctx.createRadialGradient(sx*x[0], sy*y[0], 0, sx*x[0], sy*y[0], flick);
-    radgrad.addColorStop(0, 'rgba(0,0,0,0.0)');
-    // GRADIENT
-    radgrad.addColorStop(0.5, 'rgba(0,0,0,0.5)');
-    radgrad.addColorStop(1, 'rgba(0,0,0,1.0)');
-    ctx2.fillStyle = radgrad;
-    ctx2.fillRect(0,0,c.width,c.height);
+    ctx2.globalCompositeOperation = 'source-over';
+    ctx2.fillStyle = rgb(0,0,0);
+    ctx2.fillRect(0,0,LX,LY);
+    draw_crumbs();
+    draw_gauss(flick, x[0], y[0]);
 }
 
 
+function draw_gauss(flick,xx,yy) {
+    ctx2.globalCompositeOperation = 'source-out';
+    var radgrad = ctx2.createRadialGradient(xx, yy, 0, xx, yy, flick);
+    radgrad.addColorStop(0, 'rgba(0,0,0,0.0)');
+    // GRADIENT
+    radgrad.addColorStop(0.5, 'rgba(0,0,0,0.5)');
+    radgrad.addColorStop(1, 'rgba(0,0,0,' + flick_dark + ')');
+    ctx2.fillStyle = radgrad;
+    ctx2.clearRect(xx-flick,yy-flick,2*flick,2*flick);
+    ctx2.fillRect(xx-flick-1,yy-flick-1,2*flick+2,2*flick+2);
+}
+
+function draw_crumbs() {
+    for (var i=0; i<crumbx.length; i++) {
+        // ctx2.globalCompositeOperation = 'xor';
+        // ctx2.clearRect(crumbx[i]-crumb_flick,crumby[i]-crumb_flick,2*crumb_flick,2*crumb_flick);
+        draw_gauss(crumb_flick, crumbx[i], crumby[i]);
+        // ctx2.fillStyle = 'rgba(255,255,255,0.3)';
+        // ctx2.beginPath();
+        // ctx2.arc(crumbx[i], crumby[i], crumb_flick, 0, 2*Math.PI, true);
+        // ctx2.lineWidth = 1;
+        // ctx2.strokeStyle = 'rgba(0,0,0,0.0)';
+        // ctx2.stroke();
+        // ctx2.fill();
+
+        ctx2.fillStyle = rgb(0,255,0);
+        ctx2.beginPath();
+        ctx2.arc(crumbx[i], crumby[i], crumb_radius, 0, 2*Math.PI, true);
+        ctx2.lineWidth = 1;
+        ctx2.strokeStyle = "#00FF00";
+        ctx2.stroke();
+        ctx2.fill();
+    }
+}
 
 function init_empty(){
     r = [];
@@ -310,7 +388,7 @@ var tick = function(T) {
         ctx2.fillStyle = 'rgba(0,0,0,0.0)';
         ctx2.clearRect(0, 0, c.width, c.height);
         ctx2.fillRect(0,0,c.width,c.height);
-        draw_all(x, y, r, LX, LY, c.width, c.height, ctx, ctx2);
+        draw_all(x, y, r, LX, LY, ctx, ctx2);
         for (var i=0; i<frameskip; i++){
             frame++;
             update();
@@ -327,10 +405,13 @@ var init = function() {
     empty.width = empty.height = 1;
     c = document.getElementById('canvas');
     c2 = document.getElementById('light');
+    c3 = document.getElementById('text');
     c.style.cursor = 'url('+empty.toDataURL()+')';
     c2.style.cursor = 'url('+empty.toDataURL()+')';
+    c3.style.cursor = 'url('+empty.toDataURL()+')';
     ctx = c.getContext('2d');
     ctx2 = c2.getContext('2d');
+    ctx3 = c3.getContext('2d');
 
     init_empty();
     init_level();
@@ -342,6 +423,9 @@ var init = function() {
         if (ev.keyCode == 68){ keys[3] = 0; } //right
         if (ev.keyCode == 32){ ev.preventDefault(); update_pause(); } //space is pause
         if (ev.keyCode == 66){ playsound(); }
+        if (ev.keyCode == 49){ use_light_bomb(); }
+        if (ev.keyCode == 50){ use_crumb(); }
+        // else { console.log(ev.keyCode) }
     }, false);
 
     document.body.addEventListener('keydown', function(ev) {
