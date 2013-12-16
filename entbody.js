@@ -317,7 +317,7 @@ var imgd;
 var imgt;
 var ready = false;
 var anim_start = false;
-var lvl = 3;
+var lvl = 1;
 
 function initialize_level(lvl){
     // loads the plan into src
