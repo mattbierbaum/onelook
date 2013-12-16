@@ -64,6 +64,9 @@ var num_crumb = 5;
 var crumb_radius = 2.0;
 var crumb_flick_goal = 5.0;
 
+var last_crumbx = [];
+var last_crumby = [];
+var last_crumbflick = [];
 var crumbx = [];
 var crumby = [];
 var crumbflick = [];
@@ -137,6 +140,7 @@ function audio_init(lvl){
         for (var j=0; j<audio_effects[type[i]].length; j++){
             audio_list[i].push(new Howl(
                 {urls: [audio_effects[type[i]][j]],
+                 volume: 0.01,
                  onend: (function(i) {
                      return function(){
                         var relx = x[i] - x[0]; 
@@ -304,10 +308,12 @@ function audio_sound_update(){
 
 var img = new Image();
 var planimg = new Image();
+var trackimg = new Image();
 var imgguy = new Image();
 var levelcanvas;
 var levelctx;
 var imgd;
+var imgt;
 var ready = false;
 var anim_start = false;
 var lvl = 1;
@@ -318,7 +324,7 @@ function initialize_level(lvl){
     planimg = new Image();
     planimg.onload = (function (lvl){
         return function (){
-            initialize_stage1(lvl);
+            initialize_stage05(lvl);
         }
     })(lvl);
     planimg.src = "levels/plan" + lvl + ".png";
@@ -331,10 +337,24 @@ function paint_text(txt) {
     ctx3.fillText(txt, 300, 175);
 }
 
-function initialize_stage1(lvl){
+function initialize_stage05(lvl){
     // upon load, make sure to populate the imgd array
     planctx.drawImage(planimg,0,0);
     imgd = planctx.getImageData(0,0,LX,LY).data;
+
+    trackimg = new Image();
+    trackimg.onload = (function (lvl){
+        return function (){
+            initialize_stage1(lvl);
+        }
+    })(lvl);
+    trackimg.src = "levels/track" + lvl + ".png";
+}
+
+function initialize_stage1(lvl){
+    // upon load, make sure to populate the imgd array
+    planctx.drawImage(trackimg,0,0);
+    imgt = planctx.getImageData(0,0,LX,LY).data;
 
     // set the level to the screen
     img = new Image();
@@ -358,87 +378,79 @@ function initialize_stage2(lvl){
         INITY = [350,177];
         type = [1,2];
         n = 2;
-        num_crumbs = 5;
+        num_crumb = 5 - last_crumbx.length;
         num_light_bomb = 1;
         num_look = 1;
-        audio_init(lvl);
     } else if (lvl == 2) {
         INITX = [30,34,200,445,301,204];
         INITY = [364,40,112,320,323,249];
         type = [1,2,4,2,3,2];
-        num_crumbs = 5;
+        num_crumb = 5 - last_crumbx.length;
         num_light_bomb = 5;
         num_look = 1;
         n = 6;
-        audio_init(lvl);
     } else if (lvl == 3) {
         INITX = [32, 323, 198, 247, 445, 542, 25];
         INITY = [31, 325, 372, 223, 86, 214, 200];
         type =  [1 ,  2,   3,   4,  2,   3,   4];
         n = 7;
-        num_crumbs = 5;
+        num_crumb = 5 - last_crumbx.length;
         num_light_bomb = 5;
         num_look = 1;
-        audio_init(lvl);
     } else if (lvl == 4) {
         INITX = [35, 385, 387, 557, 202, 585];
         INITY = [370, 308, 378, 136, 82, 246];
         type =  [1 ,  2,   2,   3,   4,   2];
         n = 6;
-        num_crumbs = 5;
+        num_crumb = 5 - last_crumbx.length;
         num_light_bomb = 5;
         num_look = 1;
-        audio_init(lvl);
     } else if (lvl == 5) {
         INITX = [577, 244, 407, 336, 269, 619];
         INITY = [23, 367, 267, 144, 26, 132];
         type =  [1 ,  2,   2,   2,   4,  3];
         n = 6;
-        num_crumbs = 5;
+        num_crumb = 5 - last_crumbx.length;
         num_light_bomb = 5;
         num_look = 1;
-        audio_init(lvl);
     } else if (lvl == 6) {
         INITX = [34, 363, 101, 272, 620, 321, 87];
         INITY = [288, 136, 77, 232, 172, 373, 320];
         type =  [1 ,  4,   2,   3,   4,   4,   2];
         n = 7;
-        num_crumbs = 5;
+        num_crumb = 5 - last_crumbx.length;
         num_light_bomb = 5;
         num_look = 1;
-        audio_init(lvl);
     } else if (lvl == 7) {
         INITX = [325, 353, 256, 244, 97, 539];
         INITY = [203, 326, 299, 11, 182, 321];
         type =  [1 ,  2,    2,  2,  2,    2];
         n = 6;
-        num_crumbs = 5;
+        num_crumb = 5 - last_crumbx.length;
         num_light_bomb = 5;
         num_look = 1;
-        audio_init(lvl);
     } else if (lvl == 8) {
         INITX = [608, 530, 422, 185, 402, 222, 49];
         INITY = [371, 256, 251, 250, 96, 50, 92];
         type =  [1 ,  3,    3,   3,  2,  2,  3];
         n = 7;
-        num_crumbs = 5;
+        num_crumb = 5 - last_crumbx.length;
         num_light_bomb = 5;
         num_look = 1;
-        audio_init(lvl);
     } else if (lvl == 9) {
         INITX = [35, 163, 240, 336, 548, 621, 449, 614, 219, 40, 365, 9];
         INITY = [31, 13, 78, 122, 47, 71, 160, 236, 218, 303, 305, 110];
         type =  [1 ,  2,  2,  3,  3,  4,   2,   2,   3,   2,  3,   4];
         n = 12;
-        num_crumbs = 5;
+        num_crumb = 5 - last_crumbx.length;
         num_light_bomb = 5;
         num_look = 1;
-        audio_init(lvl);
     } else {
         paint_text("GAME OVER! CONGRATULATIONS!");
     }
+    audio_init(lvl);
     init_empty();
-    ai_init(imgd, LX, LY, type, n);
+    ai_init(imgt, LX, LY, type, n);
     ready = true;
 
     //if (!anim_start) {
@@ -458,6 +470,9 @@ function game_over() {
     // Game is over
     set_pause(true);
     paint_text("You died, restarting level.");
+    last_crumbx = crumbx;
+    last_crumby = crumby;
+    last_crumbflick = crumbflick;
     window.setTimeout(initialize_level(lvl), 1000);
 }
 
@@ -465,6 +480,9 @@ function game_won() {
     set_pause(true);
     paint_text("You're on to the next level!");
     lvl += 1;
+    last_crumbx = [];
+    last_crumby = [];
+    last_crumbflick = [];
     window.setTimeout(initialize_level(lvl), 1000);
 }
 
@@ -547,6 +565,7 @@ function use_look() {
 
 function update(){
     if (!doupdate) return;
+    //global_alpha = 1.;
     audio_sound_update();
     audio_sound_relative();
 
@@ -800,9 +819,9 @@ function init_empty(){
         fy.push(0.0);
     }
 
-    crumbx = [];
-    crumby = [];
-    crumbflick = [];
+    crumbx = last_crumbx;
+    crumby = last_crumby;
+    crumbflick = last_crumbflick;
 }
 
 function set_pause(p){
