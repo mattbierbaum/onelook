@@ -685,7 +685,8 @@ function draw_all(x, y, r, LX, LY, ctx, ctx2) {
     // draw text
     ctx3.clearRect(0,0,LX,LY);
     ctx3.fillStyle = rgb(255,255,255);
-    ctx3.fillText("lightbombs:" + num_light_bomb + ' crumbs:' + num_crumb + ' looks:' + num_look, 5, LY-5);
+    // ctx3.fillText("lightbombs:" + num_light_bomb + ' crumbs:' + num_crumb + ' looks:' + num_look, 5, LY-5);
+    ctx3.fillText('looks:' + num_look + " lightbombs:" + num_light_bomb + ' crumbs:' + num_crumb, 5, LY-5);
 
     flick = flick + flick_speed * (flick * ( flick_goal - flick) + flick_noise * ((2*Math.random()-1)+(2*Math.random()-1)+(2*Math.random()-1)));
 
@@ -846,9 +847,9 @@ var init = function() {
         } //space is pause
         if (ev.keyCode == 66){ playsound(); }
         if (ev.keyCode == 77){ togglemusic = true; }
-        if (ev.keyCode == 49){ use_light_bomb(); }
-        if (ev.keyCode == 50){ use_crumb(); }
-        if (ev.keyCode == 51){ use_look(); }
+        if (ev.keyCode == 50){ use_light_bomb(); }
+        if (ev.keyCode == 51){ use_crumb(); }
+        if (ev.keyCode == 49){ use_look(); }
         // else { console.log(ev.keyCode) }
     }, false);
 
