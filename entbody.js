@@ -25,7 +25,7 @@ var LY = 400;
 var INITX = [70,70,140,330,300,150,330,450,330,340, 546];
 var INITY = [350,150,100,200,240,50,200,300,300,300, 49];
 var type = [1,2,2,2,2,3,3,3,3,4,4];
-var n = 11;
+var n = 1;
 // guy = 1 / sleeping = 2 / walking = 3
 
 var radius = 5.0;
@@ -105,6 +105,7 @@ var audio_crumb;
 var audio_lightbomb;
 
 function audio_init(){
+    console.log('audio_init');
     audio_curr = new Array(n);
     audio_playing = new Array(n);
     audio_next_time = new Array(n);
@@ -198,6 +199,7 @@ function audio_init(){
 
 
 function audio_lava_points(img){
+    console.log('audio_lava_points');
     audio_lava_list = new Array();
 
     while (audio_lava_list.length < NLAVA){
@@ -273,23 +275,43 @@ function audio_sound_update(){
     }
 }
 
-var img;
+var img = new Image();
+var planimg = new Image();
 var levelcanvas;
 var levelctx;
 var imgd;
+var ready = false;
 
 function init_level() {
   /// initialize the level layer
-  levelcanvas = document.getElementById('level');
-  levelctx = levelcanvas.getContext('2d');
-  img = document.getElementById('testlevel');
-  levelctx.drawImage(img,0,0);
-  imgd = levelctx.getImageData(0,0,LX,LY).data;
+  // img = document.getElementById('testlevel');
+  img = new Image();
+  img.src = "levels/level1.png";
+  img.onload = load_level;
+  // levelctx.drawImage(img,0,0);
 
-  audio_lava_points(imgd);
-  ai_init(imgd, LX, LY, type);
+  planimg = new Image();
+  // FIXME:
+  // If I try to make the plan image loading dynamic, everything breaks 
+  // if it isn't 'test.png'
+  // planimg.onload = init_plan;
+  planimg.src = "levels/test.png";
+  init_plan();
+  // making it explicit sort of works some of the time.
 }
 
+function init_plan() {
+  console.log('init plan');
+  planctx.drawImage(planimg,0,0);
+  imgd = planctx.getImageData(0,0,LX,LY).data;
+  audio_lava_points(imgd);
+  console.log('ai_init');
+  ai_init(imgd, LX, LY, type);
+  ready = true;
+  // I tried to push some stuff here.
+  registerAnimationRequest();
+  requestAnimationFrame(tick, c);
+}
 
 function load_level() {
   // Load the level onto the canvas
@@ -578,6 +600,7 @@ function draw_crumbs() {
 }
 
 function init_empty(){
+    console.log('init_empty');
     r = [];
     x = [];
     y = [];
@@ -617,7 +640,7 @@ function update_pause(){
     initialization and drawing 
 ================================================================================*/
 var tick = function(T) {
-    if (dodraw == true) {
+    if (dodraw == true && ready == true) {
         ctx.fillStyle = 'rgba(200,200,200,0.0)';
         ctx.clearRect(0, 0, c.width, c.height);
         ctx.fillRect(0,0,c.width,c.height);
@@ -648,6 +671,10 @@ var init = function() {
     ctx = c.getContext('2d');
     ctx2 = c2.getContext('2d');
     ctx3 = c3.getContext('2d');
+    levelcanvas = document.getElementById('level');
+    levelctx = levelcanvas.getContext('2d');
+    plancanvas = document.getElementById('plan');
+    planctx = plancanvas.getContext('2d');
 
     audio_init();
     init_empty();
@@ -682,16 +709,23 @@ var init = function() {
         if (ev.keyCode == 39){ keys[3] = 1; } //right
     }, false);
 
-    registerAnimationRequest();
-    requestAnimationFrame(tick, c);
+    console.log('launching animation.');
+    // setTimeout(registerAnimationRequest,100);
+    // registerAnimationRequest();
+    // requestAnimationFrame(tick, c);
+    // setTimeout(startRequestAnimationFrame,110);
 
 };
 window.onload = init;
 
+function startRequestAnimationFrame() {
+    requestAnimationFrame(tick,c);
+}
 
 // Provides requestAnimationFrame in a cross browser way.
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 function registerAnimationRequest() {
+    console.log('register anim');
 if ( !window.requestAnimationFrame ) {
     window.requestAnimationFrame = ( function() {
       return window.webkitRequestAnimationFrame ||
