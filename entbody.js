@@ -87,7 +87,7 @@ var music;
 var lightswitch;
 
 var NLAVA = 30;
-var audio_lava_list;
+var audio_lava_list = [];
 
 var NSTEPS = 4;
 var audio_steps;
@@ -187,7 +187,7 @@ function audio_init(lvl){
         loop: false
     });
 
-    audio_lava_points(imgd, lvl); 
+    // audio_lava_points(imgd, lvl); 
 }
 
 
@@ -275,43 +275,70 @@ var levelcanvas;
 var levelctx;
 var imgd;
 var ready = false;
+var anim_start = false;
+var lvl = 1;
 
 function initialize_level(lvl){
+    // loads the plan into src
     planimg = new Image();
     planimg.onload = (function (lvl){
         return function (){
             initialize_stage1(lvl);
         }
     })(lvl);
-    planimg.src = "levels/plan1.png";
+    planimg.src = "levels/plan" + lvl + ".png";
+}
+
+function paint_text(txt) {
+    ctx3.fillStyle = rgb(0,0,0);
+    ctx3.fillRect(0,0,LX,LY);
+    ctx3.fillStyle = rgb(255,255,255);
+    ctx3.fillText(txt, 300, 175);
 }
 
 function initialize_stage1(lvl){
+    // upon load, make sure to populate the imgd array
     planctx.drawImage(planimg,0,0);
     imgd = planctx.getImageData(0,0,LX,LY).data;
 
+    // set the level to the screen
     img = new Image();
     img.onload = (function (lvl){
         return function (){
             initialize_stage2(lvl);
         }
     })(lvl);
-    img.src = "levels/level1.png";
+    img.src = "levels/level" + lvl + ".png";
 }
 
 function initialize_stage2(lvl){
     // here, we load the characters since
     // the audio depends on that being initialized
-    INITX = [70,70,140,330,300,150,330,450,330,340, 546];
-    INITY = [350,150,100,200,240,50,200,300,300,300, 49];
-    type = [1,2,2,2,2,3,3,3,3,4,4];
-
-    audio_init(lvl);
+    if (lvl == 1) {
+        INITX = [70,70,140,330,300,150,330,450,330,340, 546];
+        INITY = [350,150,100,200,240,50,200,300,300,300, 49];
+        type = [1,2,2,2,2,3,3,3,3,4,4];
+        n = 1;
+        audio_init(lvl);
+    } else if (lvl == 2) {
+        INITX = [70,70,140,330,300,150,330,450,330,340, 546];
+        INITY = [350,150,100,200,240,50,200,300,300,300, 49];
+        type = [1,2,2,2,2,3,3,3,3,4,4];
+        n = 1;
+        audio_init(lvl);
+        audio_lava_points(imgd, lvl); 
+        n = 1;
+    } else {
+        paint_text("GAME OVER! CONGRATULATIONS!");
+    }
     ai_init(imgd, LX, LY, type);
     ready = true;
 
-    registerAnimationRequest();
-    requestAnimationFrame(tick, c);
+    if (!anim_start) {
+        registerAnimationRequest();
+        requestAnimationFrame(tick, c);
+        anim_start = true;
+    }
 }
   
 function load_level() {
@@ -335,7 +362,9 @@ function game_over() {
 }
 
 function game_won() {
-    alert("You won!");
+    paint_text("You won!");
+    lvl += 1;
+    initialize_level(lvl);
 }
 
 function is_level_wall(xx,yy) {
@@ -371,7 +400,7 @@ function is_game_over(xx,yy) {
 
 function is_game_won(xx,yy) {
   var i = 4*Math.floor(xx) + 4*LX*Math.floor(yy);
-  if (imgd[i] == 95 && imgd[i+1] == 0 && imgd[i+2] == 255) {
+  if (imgd[i] == 0 && imgd[i+1] == 0 && imgd[i+2] == 255) {
       return true;
   }
   return false;
@@ -602,6 +631,7 @@ function draw_crumbs() {
 }
 
 function init_empty(){
+    paint_text("loading...");
     r = [];
     x = [];
     y = [];
