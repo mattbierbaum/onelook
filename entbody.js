@@ -98,6 +98,9 @@ var last_step = [0,0,0];
 var audio_crumb;
 var audio_lightbomb;
 
+var guy_sprite = new Image();
+guy_sprite.src = "characters/guytop1.png"
+
 function audio_init(lvl){
     audio_curr = new Array(n);
     audio_playing = new Array(n);
@@ -581,21 +584,24 @@ function draw_all(x, y, r, LX, LY, ctx, ctx2) {
         var cr,cg,cb;
         if (type[i] == 1){
             // our guy
-            cr = 250;
-            cg = 0;
-            cb = 0;
-        } else if (type[i] == 2) {
-            // sleeping
-            cr = 0;
-            cg = 255;
-            cb = 255;
+            // cr = 250;
+            // cg = 0;
+            // cb = 0;
+            ctx.drawImage(guy_sprite,x[0]-15,y[0]);
         } else {
-            cr = 255;
-            cg = 255;
-            cb = 0;
+            if (type[i] == 2) {
+                // sleeping
+                cr = 0;
+                cg = 255;
+                cb = 255;
+            } else {
+                cr = 255;
+                cg = 255;
+                cb = 0;
+            }
+            ctx.fillStyle = rgb(cr,cg,cb);
+            ctx.fill();
         }
-        ctx.fillStyle = rgb(cr,cg,cb);
-        ctx.fill();
     }
 
     // draw text
