@@ -119,20 +119,20 @@ function audio_init(lvl){
 
     audio_effects = [[], [], 
         [
-            'sounds/monster_deep1.mp3',
-            'sounds/monster_deep2.mp3',
-            'sounds/monster_deep3.mp3',
+            'sounds/monster_deep1',
+            'sounds/monster_deep2',
+            'sounds/monster_deep3',
         ], 
         [
-            'sounds/monster_growl1.mp3',
-            'sounds/monster_growl2.mp3',
-            'sounds/monster_growl3.mp3',
-            'sounds/monster_growl4.mp3',
-            'sounds/monster_growl5.mp3',
+            'sounds/monster_growl1',
+            'sounds/monster_growl2',
+            'sounds/monster_growl3',
+            'sounds/monster_growl4',
+            'sounds/monster_growl5',
         ], 
         [
-            'sounds/monster_gurggle1.mp3',
-            'sounds/monster_gurggle2.mp3',
+            'sounds/monster_gurggle1',
+            'sounds/monster_gurggle2',
         ]
         ];
 
@@ -140,7 +140,7 @@ function audio_init(lvl){
         audio_list[i] = new Array();
         for (var j=0; j<audio_effects[type[i]].length; j++){
             audio_list[i].push(new Howl(
-                {urls: [audio_effects[type[i]][j]],
+                {urls: soundtypes(audio_effects[type[i]][j]),
                  volume: 0.01,
                  onend: (function(i) {
                      return function(){
@@ -168,7 +168,7 @@ function audio_init(lvl){
     audio_steps = new Array(NSTEPS);
     for (var i=0; i<NSTEPS; i++){
         audio_steps[i] = new Howl({
-            urls: ['sounds/step_'+(i+1)+".mp3"],
+            urls: soundtypes('sounds/step_'+(i+1)),
             autoplay: false,
             loop: false,
             volume: 0.15,
@@ -176,24 +176,24 @@ function audio_init(lvl){
     }
 
     lightswitch = new Howl({
-        urls: ['sounds/lightswitch.mp3'],
+        urls: soundtypes('sounds/lightswitch'),
         autoplay: false,
         loop: false
     });
 
     audio_crumb = new Howl({
-        urls: ['sounds/crumb.mp3'],
+        urls: soundtypes('sounds/crumb'),
         autoplay: false,
         loop: false
     });
     audio_lightbomb = new Howl({
-        urls: ['sounds/lightbomb.mp3'],
+        urls: soundtypes('sounds/lightbomb'),
         autoplay: false,
         loop: false
     });
 
     audio_lava = new Howl({
-        urls: ['sounds/lava2.mp3'],
+        urls: soundtypes('sounds/lava2'),
         autoplay: false,
         loop: true,
         volume: 0.01,
@@ -874,6 +874,15 @@ var tick = function(T) {
     }
 };
 
+function soundtypes(basename){
+    var types = ["mp3", "ogg", "wav"];
+    var namelist = [];
+    for (var i=0; i<types.length; i++){
+        namelist.push(basename+"."+types[i]);
+    }
+    return namelist;
+}
+
 
 var init = function() {
     // create the canvas element
@@ -896,7 +905,7 @@ var init = function() {
     trackctx = trackcanvas.getContext('2d');
 
     music = new Howl({
-        urls: ['sounds/music_slow.mp3'],
+        urls: soundtypes('sounds/music_slow'),
         autoplay: false,
         loop: true,
         volume: 0.13,
