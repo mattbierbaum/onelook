@@ -277,7 +277,7 @@ var levelctx;
 var imgd;
 var ready = false;
 var anim_start = false;
-var lvl = 2;
+var lvl = 1;
 
 function initialize_level(lvl){
     // loads the plan into src
@@ -335,7 +335,17 @@ function initialize_stage2(lvl){
         n = 5;
         audio_init(lvl);
         audio_lava_points(imgd, lvl); 
-    } else {
+    } else if (lvl == 3) {
+        INITX = [61, 99, 239, 375, 510, 165];
+        INITY = [19, 182, 314, 267, 84, 143];
+        type =  [1 ,   4,   2,   3,  2,   2];
+        n = 6;
+        num_crumbs = 5;
+        num_light_bomb = 5;
+        num_look = 1;
+        audio_init(lvl);
+        audio_lava_points(imgd, lvl); 
+    }else {
         paint_text("GAME OVER! CONGRATULATIONS!");
     }
     init_empty();
