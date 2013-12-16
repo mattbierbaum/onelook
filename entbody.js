@@ -352,10 +352,10 @@ function initialize_stage2(lvl){
     vx[0] = vy[0] = fx[0] = fy[0] = 0;
     keys[0] = keys[1] = keys[2] = keys[3] = 0;
     if (lvl == 1) {
-        INITX = [70,70,140,330,300,150,330,450,330,340, 546];
-        INITY = [350,150,100,200,240,50,200,300,300,300, 49];
-        type = [1,2,2,2,2,3,3,3,3,4,4];
-        n = 1;
+        INITX = [70, 150, 70,140,330,300,150,330,450,330,340, 546];
+        INITY = [350,50, 150,100,200,240,50,200,300,300,300, 49];
+        type = [1,4,2,2,2,3,3,3,3,4,4];
+        n = 2;
         num_crumbs = 5;
         num_light_bomb = 1;
         num_look = 1;
@@ -363,13 +363,12 @@ function initialize_stage2(lvl){
     } else if (lvl == 2) {
         INITX = [30,161,286,246,287];
         INITY = [364,190,252,300,300];
-        type = [1,2,2,3,3];
+        type = [1,4,2,3,3];
         num_crumbs = 5;
         num_light_bomb = 5;
         num_look = 1;
         n = 5;
         audio_init(lvl);
-        //audio_lava_points(imgd, lvl); 
     } else if (lvl == 3) {
         INITX = [61, 99, 239, 375, 510, 165];
         INITY = [19, 182, 314, 267, 84, 143];
@@ -379,12 +378,11 @@ function initialize_stage2(lvl){
         num_light_bomb = 5;
         num_look = 1;
         audio_init(lvl);
-        ///audio_lava_points(imgd, lvl); 
     }else {
         paint_text("GAME OVER! CONGRATULATIONS!");
     }
     init_empty();
-    ai_init(imgd, LX, LY, type);
+    ai_init(imgd, LX, LY, type, n);
     ready = true;
 
     //if (!anim_start) {
@@ -485,7 +483,6 @@ function use_look() {
 
 function update(){
     if (!doupdate) return;
-
     audio_sound_update();
     audio_sound_relative();
 
