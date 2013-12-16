@@ -17,7 +17,7 @@ var flick_speed = 1e-4;
 var flick_noise = 6e3;
 var flick = flick_goal;
 var flick_min = 40;
-var flick_max = 1e8;
+var flick_max = 200;
 var flick_dark = 1.0;
 
 // sizes
@@ -60,6 +60,7 @@ var showforce = true;
 
 // items
 var num_light_bomb = 5;
+var light_bomb_mult = 5e-2;
 var num_crumb = 5;
 var crumb_radius = 2.0;
 var crumb_flick_goal = 5.0;
@@ -316,7 +317,7 @@ var imgd;
 var imgt;
 var ready = false;
 var anim_start = false;
-var lvl = 1;
+var lvl = 3;
 
 function initialize_level(lvl){
     // loads the plan into src
@@ -539,7 +540,7 @@ function is_game_won(xx,yy) {
 function use_light_bomb() {
     if (num_light_bomb > 0) {
         audio_lightbomb.play();
-        flick = 0.5*1./flick_speed;
+        flick = light_bomb_mult*0.5*1./flick_speed;
         num_light_bomb -= 1;
     }
 }
@@ -733,26 +734,27 @@ function draw_all(x, y, r, LX, LY, ctx, ctx2) {
 
 }
 
-var shadow_step_size = 5;
-var shadow_expected_step = 1;
-var shadow_num = 15;
-var shadow_noise = 1e-1;
-var shadow_max = 3.;
+var shadow_step_size = 1;
+var shadow_expected_step = 2*Math.PI/200;
+var shadow_num = 1;
+var shadow_noise = 0; // 0.5;
+var theta_noise = 0; // 1e-2;
+var shadow_max = 1.;
 
 function draw_gauss(flick,xx,yy) {
     ctx2.globalCompositeOperation = 'destination-out';
     var radgrad = ctx2.createRadialGradient(xx, yy, 0, xx, yy, flick);
-    radgrad.addColorStop(0, 'rgba(0,0,0,' + shadow_max/shadow_num + ')');
+    radgrad.addColorStop(0, 'rgba(0,0,0,1)');
     // GRADIENT
-    radgrad.addColorStop(0.5, 'rgba(0,0,0,' + (shadow_max/2)/shadow_num + ')');
+    radgrad.addColorStop(0.5, 'rgba(0,0,0,0.5)');
     radgrad.addColorStop(1, 'rgba(0,0,0,0)');
 
-    for (var i=0; i<5; i++) {
+    for (var i=0; i<shadow_num; i++) {
         ctx2.save();
         ctx2.beginPath();
         var theta = 0.0;
-        var center_x = xx + shadow_noise * ((2*Math.random()-1)+(2*Math.random()-1)+(2*Math.random()-1));
-        var center_y = yy + shadow_noise * ((2*Math.random()-1)+(2*Math.random()-1)+(2*Math.random()-1));
+        var center_x = xx; // + shadow_noise * ((2*Math.random()-1)+(2*Math.random()-1)+(2*Math.random()-1));
+        var center_y = yy; // + shadow_noise * ((2*Math.random()-1)+(2*Math.random()-1)+(2*Math.random()-1));
         var x = center_x;
         var y = center_y;
         for (var k=0; k < 2*flick; k += shadow_step_size) {
@@ -772,7 +774,7 @@ function draw_gauss(flick,xx,yy) {
                 }
             }
             ctx2.lineTo(x,y);
-            theta += shadow_expected_step/k;
+            theta += shadow_expected_step; // + theta_noise*(2*Math.random()-1);
         }
         ctx2.closePath();
         ctx2.clip();
