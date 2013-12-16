@@ -354,8 +354,8 @@ function initialize_stage05(lvl){
 
 function initialize_stage1(lvl){
     // upon load, make sure to populate the imgd array
-    planctx.drawImage(trackimg,0,0);
-    imgt = planctx.getImageData(0,0,LX,LY).data;
+    trackctx.drawImage(trackimg,0,0);
+    imgt = trackctx.getImageData(0,0,LX,LY).data;
 
     // set the level to the screen
     img = new Image();
@@ -483,7 +483,7 @@ function game_over() {
     last_crumbx = crumbx;
     last_crumby = crumby;
     last_crumbflick = crumbflick;
-    window.setTimeout(initialize_level(lvl), 1000);
+    initialize_level(lvl);
 }
 
 function game_won() {
@@ -493,7 +493,7 @@ function game_won() {
     last_crumbx = [];
     last_crumby = [];
     last_crumbflick = [];
-    window.setTimeout(initialize_level(lvl), 1000);
+    initialize_level(lvl);
 }
 
 function is_level_wall(xx,yy) {
@@ -891,7 +891,9 @@ var init = function() {
     levelcanvas = document.getElementById('level');
     levelctx = levelcanvas.getContext('2d');
     plancanvas = document.getElementById('plan');
+    trackcanvas = document.getElementById('track');
     planctx = plancanvas.getContext('2d');
+    trackctx = trackcanvas.getContext('2d');
 
     music = new Howl({
         urls: ['sounds/music_slow.mp3'],
