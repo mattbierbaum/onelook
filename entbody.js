@@ -36,7 +36,7 @@ var fade_in_time = 10.;
 // Monster params
 var monster_cutoff2 = 4*radius*radius;
 var walking_speed = 4e2;
-var sleeper_r2 = 30.*30.;
+var sleeper_r2 = 40.*40.;
 var sleeper_force_mag = 0.2;
 var sleeper_max_v2 = 4*4;
 
@@ -99,7 +99,9 @@ var audio_crumb;
 var audio_lightbomb;
 
 var guy_sprite = new Image();
-guy_sprite.src = "characters/guytop1.png"
+guy_sprite.src = "characters/guytopbig.png"
+var guy_sprite_width = 32;
+var guy_radius = 10.0;
 
 function audio_init(lvl){
     audio_curr = new Array(n);
@@ -300,9 +302,6 @@ function initialize_stage1(lvl){
     planctx.drawImage(planimg,0,0);
     imgd = planctx.getImageData(0,0,LX,LY).data;
 
-    imgguy = new Image();
-    imgguy.src = "characters/GuyTopBig.png";
-
     // set the level to the screen
     img = new Image();
     img.onload = (function (lvl){
@@ -399,7 +398,8 @@ function is_level_lava(xx,yy) {
 
 function is_monster(xx,yy) {
     for (var i=1; i<n; i++) {
-       if ((x[i]-x[0])*(x[i]-x[0])+(y[i]-y[0])*(y[i]-y[0]) < monster_cutoff2) {
+       if ((x[i]-x[0])*(x[i]-x[0])+(y[i]-y[0])*(y[i]-y[0]) < 
+               (radius + guy_radius)*(radius + guy_radius)){ //monster_cutoff2) {
            return true;
        }
     }
@@ -562,15 +562,14 @@ function draw_all(x, y, r, LX, LY, ctx, ctx2) {
     load_level();
     ai_draw(x,y, time);
 
-    /*ctx.save();
+    ctx.save();
     ctx.translate(x[0], y[0]);
-    ctx.translate(16, 16);
-    ctx.rotate(Math.atan2(vy[0], vx[0]));
-    ctx.drawImage(imgguy, -16, -16);
-    ctx.restore();*/
+    ctx.rotate(Math.atan2(vy[0], vx[0]) + Math.PI/2);
+    ctx.drawImage(guy_sprite, -guy_sprite_width/2, -guy_sprite_width/2);
+    ctx.restore();
 
     for (var i=0; i<x.length; i++) {
-        if (type[i] == 4)
+        if (type[i] == 1 || type[i] == 4)
             continue;
 
         var indx = Math.floor(x[i]/LX);
@@ -582,26 +581,18 @@ function draw_all(x, y, r, LX, LY, ctx, ctx2) {
         ctx.stroke();
 
         var cr,cg,cb;
-        if (type[i] == 1){
-            // our guy
-            // cr = 250;
-            // cg = 0;
-            // cb = 0;
-            ctx.drawImage(guy_sprite,x[0]-15,y[0]);
+        if (type[i] == 2) {
+            // sleeping
+            cr = 0;
+            cg = 255;
+            cb = 255;
         } else {
-            if (type[i] == 2) {
-                // sleeping
-                cr = 0;
-                cg = 255;
-                cb = 255;
-            } else {
-                cr = 255;
-                cg = 255;
-                cb = 0;
-            }
-            ctx.fillStyle = rgb(cr,cg,cb);
-            ctx.fill();
+            cr = 255;
+            cg = 255;
+            cb = 0;
         }
+        ctx.fillStyle = rgb(cr,cg,cb);
+        ctx.fill();
     }
 
     // draw text
