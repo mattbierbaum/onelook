@@ -304,10 +304,12 @@ function audio_sound_update(){
 
 var img = new Image();
 var planimg = new Image();
+var trackimg = new Image();
 var imgguy = new Image();
 var levelcanvas;
 var levelctx;
 var imgd;
+var imgt;
 var ready = false;
 var anim_start = false;
 var lvl = 1;
@@ -318,7 +320,7 @@ function initialize_level(lvl){
     planimg = new Image();
     planimg.onload = (function (lvl){
         return function (){
-            initialize_stage1(lvl);
+            initialize_stage05(lvl);
         }
     })(lvl);
     planimg.src = "levels/plan" + lvl + ".png";
@@ -331,10 +333,24 @@ function paint_text(txt) {
     ctx3.fillText(txt, 300, 175);
 }
 
-function initialize_stage1(lvl){
+function initialize_stage05(lvl){
     // upon load, make sure to populate the imgd array
     planctx.drawImage(planimg,0,0);
     imgd = planctx.getImageData(0,0,LX,LY).data;
+
+    trackimg = new Image();
+    trackimg.onload = (function (lvl){
+        return function (){
+            initialize_stage1(lvl);
+        }
+    })(lvl);
+    trackimg.src = "levels/track" + lvl + ".png";
+}
+
+function initialize_stage1(lvl){
+    // upon load, make sure to populate the imgd array
+    planctx.drawImage(trackimg,0,0);
+    imgt = planctx.getImageData(0,0,LX,LY).data;
 
     // set the level to the screen
     img = new Image();
@@ -382,7 +398,7 @@ function initialize_stage2(lvl){
         paint_text("GAME OVER! CONGRATULATIONS!");
     }
     init_empty();
-    ai_init(imgd, LX, LY, type, n);
+    ai_init(imgt, LX, LY, type, n);
     ready = true;
 
     //if (!anim_start) {
@@ -483,6 +499,7 @@ function use_look() {
 
 function update(){
     if (!doupdate) return;
+    //global_alpha = 1.;
     audio_sound_update();
     audio_sound_relative();
 
