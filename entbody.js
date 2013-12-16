@@ -488,7 +488,7 @@ function game_won() {
 
 function is_level_wall(xx,yy) {
   var i = 4*Math.floor(xx) + 4*LX*Math.floor(yy);
-  if (imgd[i] <= 2 && imgd[i+1]<= 2 && imgd[i+2] <= 2) {
+  if (imgt[i] <= 200 && imgt[i+1]<= 200 && imgt[i+2] <= 200) {
       return true;
   }
   return false;
