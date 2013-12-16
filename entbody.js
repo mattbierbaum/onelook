@@ -16,7 +16,7 @@ var flick_goal = 20.;
 var flick_speed = 1e-4;
 var flick_noise = 6e3;
 var flick = flick_goal;
-var flick_min = 30;
+var flick_min = 40;
 var flick_max = 1e8;
 var flick_dark = 1.0;
 
@@ -470,6 +470,14 @@ function game_won() {
 
 function is_level_wall(xx,yy) {
   var i = 4*Math.floor(xx) + 4*LX*Math.floor(yy);
+  if (imgd[i] <= 2 && imgd[i+1]<= 2 && imgd[i+2] <= 2) {
+      return true;
+  }
+  return false;
+}
+
+function is_level_see(xx,yy) {
+  var i = 4*Math.floor(xx) + 4*LX*Math.floor(yy);
   if (imgd[i] == 0 && imgd[i+1] ==0 && imgd[i+2] == 0) {
       return true;
   }
@@ -706,16 +714,55 @@ function draw_all(x, y, r, LX, LY, ctx, ctx2) {
 
 }
 
+var shadow_step_size = 5;
+var shadow_expected_step = 1;
+var shadow_num = 15;
+var shadow_noise = 1e-1;
+var shadow_max = 3.;
 
 function draw_gauss(flick,xx,yy) {
     ctx2.globalCompositeOperation = 'destination-out';
     var radgrad = ctx2.createRadialGradient(xx, yy, 0, xx, yy, flick);
-    radgrad.addColorStop(0, 'rgba(0,0,0,1.0)');
+    radgrad.addColorStop(0, 'rgba(0,0,0,' + shadow_max/shadow_num + ')');
     // GRADIENT
-    radgrad.addColorStop(0.5, 'rgba(0,0,0,0.5)');
+    radgrad.addColorStop(0.5, 'rgba(0,0,0,' + (shadow_max/2)/shadow_num + ')');
     radgrad.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx2.fillStyle = radgrad;
-    ctx2.fillRect(xx-flick-1,yy-flick-1,2*flick+2,2*flick+2);
+
+    for (var i=0; i<5; i++) {
+        ctx2.save();
+        ctx2.beginPath();
+        var theta = 0.0;
+        var center_x = xx + shadow_noise * ((2*Math.random()-1)+(2*Math.random()-1)+(2*Math.random()-1));
+        var center_y = yy + shadow_noise * ((2*Math.random()-1)+(2*Math.random()-1)+(2*Math.random()-1));
+        var x = center_x;
+        var y = center_y;
+        for (var k=0; k < 2*flick; k += shadow_step_size) {
+            x = xx + k*Math.sin(theta);
+            y = yy + k*Math.cos(theta);
+            if (is_level_see(x,y)) {
+                break;
+            }
+        }
+        ctx2.moveTo(x,y);
+        while (theta < 2*Math.PI) {
+            for (var k=0; k < 2*flick; k += shadow_step_size) {
+                x = center_x + k*Math.sin(theta);
+                y = center_y + k*Math.cos(theta);
+                if (is_level_see(x,y)) {
+                    break;
+                }
+            }
+            ctx2.lineTo(x,y);
+            theta += shadow_expected_step/k;
+        }
+        ctx2.closePath();
+        ctx2.clip();
+
+        ctx2.fillStyle = radgrad;
+        ctx2.fillRect(xx-flick-1,yy-flick-1,2*flick+2,2*flick+2);
+
+        ctx2.restore();
+    }
 }
 
 function draw_crumbs() {
