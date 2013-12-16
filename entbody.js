@@ -449,6 +449,8 @@ function initialize_stage2(lvl){
     } else {
         paint_text("GAME OVER! CONGRATULATIONS!");
     }
+    flick = flick_goal;
+    global_alpha = 0.;
     audio_init(lvl);
     init_empty();
     ai_init(imgt, LX, LY, type, n);
