@@ -64,6 +64,9 @@ var num_crumb = 5;
 var crumb_radius = 2.0;
 var crumb_flick_goal = 5.0;
 
+var last_crumbx = [];
+var last_crumby = [];
+var last_crumbflick = [];
 var crumbx = [];
 var crumby = [];
 var crumbflick = [];
@@ -474,6 +477,9 @@ function game_over() {
     // Game is over
     set_pause(true);
     paint_text("You died, restarting level.");
+    last_crumbx = crumbx;
+    last_crumby = crumby;
+    last_crumbflick = crumbflick;
     window.setTimeout(initialize_level(lvl), 1000);
 }
 
@@ -481,6 +487,9 @@ function game_won() {
     set_pause(true);
     paint_text("You're on to the next level!");
     lvl += 1;
+    last_crumbx = [];
+    last_crumby = [];
+    last_crumbflick = [];
     window.setTimeout(initialize_level(lvl), 1000);
 }
 
@@ -769,9 +778,9 @@ function init_empty(){
         fy.push(0.0);
     }
 
-    crumbx = [];
-    crumby = [];
-    crumbflick = [];
+    crumbx = last_crumbx;
+    crumby = last_crumby;
+    crumbflick = last_crumbflick;
 }
 
 function set_pause(p){
