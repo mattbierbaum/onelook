@@ -103,8 +103,8 @@ var audio_crumb;
 var audio_lightbomb;
 
 var guy_sprite = new Image();
-guy_sprite.src = "characters/guytopbig.png"
-var guy_sprite_width = 32;
+guy_sprite.src = "characters/guytopmed.png"
+var guy_sprite_width = 24;
 var guy_radius = 10.0;
 
 function audio_init(lvl){
