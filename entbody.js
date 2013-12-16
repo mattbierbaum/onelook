@@ -354,7 +354,7 @@ function initialize_stage2(lvl){
     if (lvl == 1) {
         INITX = [70, 150, 70,140,330,300,150,330,450,330,340, 546];
         INITY = [350,50, 150,100,200,240,50,200,300,300,300, 49];
-        type = [1,2,2,2,2,3,3,3,3,4,4];
+        type = [1,4,2,2,2,3,3,3,3,4,4];
         n = 2;
         num_crumbs = 5;
         num_light_bomb = 1;
@@ -382,7 +382,7 @@ function initialize_stage2(lvl){
         paint_text("GAME OVER! CONGRATULATIONS!");
     }
     init_empty();
-    ai_init(imgd, LX, LY, type);
+    ai_init(imgd, LX, LY, type, n);
     ready = true;
 
     //if (!anim_start) {
@@ -483,7 +483,6 @@ function use_look() {
 
 function update(){
     if (!doupdate) return;
-    global_alpha = 1;
     audio_sound_update();
     audio_sound_relative();
 
