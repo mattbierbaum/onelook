@@ -265,6 +265,7 @@ function audio_sound_update(){
 
 var img = new Image();
 var planimg = new Image();
+var imgguy = new Image();
 var levelcanvas;
 var levelctx;
 var imgd;
@@ -295,6 +296,9 @@ function initialize_stage1(lvl){
     // upon load, make sure to populate the imgd array
     planctx.drawImage(planimg,0,0);
     imgd = planctx.getImageData(0,0,LX,LY).data;
+
+    imgguy = new Image();
+    imgguy.src = "characters/GuyTopBig.png";
 
     // set the level to the screen
     img = new Image();
@@ -554,6 +558,13 @@ function update(){
 function draw_all(x, y, r, LX, LY, ctx, ctx2) {
     load_level();
     ai_draw(x,y, time);
+
+    /*ctx.save();
+    ctx.translate(x[0], y[0]);
+    ctx.translate(16, 16);
+    ctx.rotate(Math.atan2(vy[0], vx[0]));
+    ctx.drawImage(imgguy, -16, -16);
+    ctx.restore();*/
 
     for (var i=0; i<x.length; i++) {
         if (type[i] == 4)
