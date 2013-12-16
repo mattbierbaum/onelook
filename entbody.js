@@ -447,7 +447,14 @@ function initialize_stage2(lvl){
         num_light_bomb = 5;
         num_look = 1;
     } else {
-        paint_text("GAME OVER! CONGRATULATIONS!");
+        INITX = [1];
+        INITY = [1];
+        n = 1;
+        type = [1];
+        num_crumb = 10 - last_crumbx.length;
+        num_light_bomb = 1e3;
+        num_look = 1;
+        paint_text("CONGRATULATIONS!");
     }
     flick = flick_goal;
     global_alpha = 0.;
