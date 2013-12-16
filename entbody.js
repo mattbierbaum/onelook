@@ -194,7 +194,6 @@ function audio_init(lvl){
 function audio_lava_points(img, lvl){
     audio_lava_list = new Array();
 
-    if (lvl == 1) return;
     while (audio_lava_list.length < NLAVA){
         tx = Math.floor(LX*Math.random());
         ty = Math.floor(LY*Math.random());
@@ -211,8 +210,10 @@ function audio_lava_points(img, lvl){
 }
 
 function pause_lava(){
-    for (var i=0; i<NLAVA; i++){
-        audio_lava_list[i][2].pause();
+    if (audio_lava_list.length > 0) {
+        for (var i=0; i<NLAVA; i++){
+            audio_lava_list[i][2].pause();
+        }
     }
 }
 
@@ -276,7 +277,7 @@ var levelctx;
 var imgd;
 var ready = false;
 var anim_start = false;
-var lvl = 1;
+var lvl = 2;
 
 function initialize_level(lvl){
     // loads the plan into src
@@ -314,23 +315,30 @@ function initialize_stage1(lvl){
 function initialize_stage2(lvl){
     // here, we load the characters since
     // the audio depends on that being initialized
+    keys[0] = keys[1] = keys[2] = keys[3] = 0;
     if (lvl == 1) {
         INITX = [70,70,140,330,300,150,330,450,330,340, 546];
         INITY = [350,150,100,200,240,50,200,300,300,300, 49];
         type = [1,2,2,2,2,3,3,3,3,4,4];
         n = 1;
+        num_crumbs = 5;
+        num_light_bomb = 1;
+        num_look = 1;
         audio_init(lvl);
     } else if (lvl == 2) {
-        INITX = [70,70,140,330,300,150,330,450,330,340, 546];
-        INITY = [350,150,100,200,240,50,200,300,300,300, 49];
-        type = [1,2,2,2,2,3,3,3,3,4,4];
-        n = 1;
+        INITX = [30,161,286,246,287];
+        INITY = [364,190,252,300,300];
+        type = [1,2,2,3,3];
+        num_crumbs = 5;
+        num_light_bomb = 5;
+        num_look = 1;
+        n = 5;
         audio_init(lvl);
         audio_lava_points(imgd, lvl); 
-        n = 1;
     } else {
         paint_text("GAME OVER! CONGRATULATIONS!");
     }
+    init_empty();
     ai_init(imgd, LX, LY, type);
     ready = true;
 
@@ -350,21 +358,25 @@ function game_over() {
     // Game is over
     update_pause();
     alert('GAME OVER');
-    init_empty();
-    x[0] = INITX[0];
-    y[0] = INITY[0];
-    vx[0] = 0.;
-    vy[0] = 0.;
-    fx[0] = 0.;
-    fy[0] = 0.;
-    keys[0] = keys[1] = keys[2] = keys[3] = 0;
+    // init_empty();
+    // x[0] = INITX[0];
+    // y[0] = INITY[0];
+    // vx[0] = 0.;
+    // vy[0] = 0.;
+    // fx[0] = 0.;
+    // fy[0] = 0.;
+    // keys[0] = keys[1] = keys[2] = keys[3] = 0;
+    initialize_level(lvl);
     setTimeout(update_pause,10);
 }
 
 function game_won() {
-    paint_text("You won!");
+    paint_text("You're on to the next level!");
+    update_pause();
     lvl += 1;
+    console.log("lvl=" + lvl);
     initialize_level(lvl);
+    setTimeout(update_pause,100);
 }
 
 function is_level_wall(xx,yy) {
@@ -708,7 +720,7 @@ var init = function() {
     planctx = plancanvas.getContext('2d');
 
     init_empty();
-    initialize_level(1);
+    initialize_level(lvl);
 
     document.body.addEventListener('keyup', function(ev) {
         if (ev.keyCode == 87){ keys[0] = 0; } //up
