@@ -9,6 +9,9 @@ var r=[];
 var ivor=[];
 var ivoravg;
 
+var notplaying = true;
+var lavaplaying = false;
+
 var flick_goal = 20.;
 var flick_speed = 1e-4;
 var flick_noise = 6e3;
@@ -87,6 +90,7 @@ var playmusic = true;
 var music;
 var lightswitch;
 
+var haslava = false;
 var NLAVA = 30;
 var audio_lava_list = [];
 
@@ -183,43 +187,61 @@ function audio_init(lvl){
         loop: false
     });
 
-    // audio_lava_points(imgd, lvl); 
+    audio_lava = new Howl({
+        urls: ['sounds/lava2.mp3'],
+        autoplay: false,
+        loop: true,
+        volume: 0.01,
+    });
+
+    audio_lava_points(imgd, lvl);
+    if (haslava && !lavaplaying){
+        audio_lava.play();
+        lavaplaying = true;
+    } 
+
+    if (!haslava && lavaplaying){
+        audio_lava.stop();
+        lavaplaying = false;
+    }
 }
 
 
-/*function audio_lava_points(img, lvl){
-    console.log('loading lava');
-    for (var i=0; i<audio_lava_list.length; i++)
-        audio_lava_list[i][2].unload();
-
+function audio_lava_points(img, lvl){
     audio_lava_list = new Array();
 
-    while (audio_lava_list.length < NLAVA){
-        tx = Math.floor(LX*Math.random());
-        ty = Math.floor(LY*Math.random());
-        if (is_level_lava(tx, ty))
-            audio_lava_list.push([tx, ty, new Howl({
-                    urls: ['sounds/lava2.mp3'],
-                    autoplay: true,
-                    loop: true,
-                    volume: 0.01,
-                    buffer: false,
-                })
-            ]);
+    haslava = false;
+    for (var i=0; i<LX; i++){
+        for (var j=0; j<LY; j++){
+            if (is_level_lava(i, j))
+                haslava = true;
+        }
+    }
+
+    if (haslava){
+        console.log("Initializing lava");
+        while (audio_lava_list.length < NLAVA){
+            tx = Math.floor(LX*Math.random());
+            ty = Math.floor(LY*Math.random());
+            if (is_level_lava(tx, ty))
+                audio_lava_list.push([tx, ty]);
+        }
     }
 }
 
 function pause_lava(){
-    for (var i=0; i<audio_lava_list.length; i++){
-        audio_lava_list[i][2].stop();
+    if (haslava && lavaplaying){
+        audio_lava.pause();
+        lavaplaying = false;
     }
 }
 
 function unpause_lava(){
-    for (var i=0; i<audio_lava_list.length; i++){
-        audio_lava_list[i][2].play();
+    if (haslava && !lavaplaying) {
+        audio_lava.play();
+        lavaplaying = true;
     }
-}*/
+}
 
 function audio_sound_relative(){
     for (var i=1; i<n; i++){
@@ -242,9 +264,13 @@ function audio_sound_update(){
         if (playmusic){
             playmusic = false;
             music.pause();
+            notplaying = true;
         } else {
             playmusic = true;
-            music.play();
+            if (playmusic && notplaying){
+                music.play();
+                notplaying = false;
+            }
         }
         togglemusic = false;
     }
@@ -256,16 +282,24 @@ function audio_sound_update(){
         }
     }
 
-    /*for (var i=0; i<audio_lava_list.length; i++){
-        var relx = audio_lava_list[i][0] - x[0];
-        var rely = audio_lava_list[i][1] - y[0];
+    if (haslava){
+        var mindist = LX*LX + LY*LY;
+        var minrangle = 0;
+        for (var i=0; i<audio_lava_list.length; i++){
+            var relx = audio_lava_list[i][0] - x[0];
+            var rely = audio_lava_list[i][1] - y[0];
 
-        var dist2 = relx*relx + rely*rely;
-        var rangle = Math.atan2(rely, relx);
+            var dist2 = relx*relx + rely*rely;
+            var rangle = Math.atan2(rely, relx);
 
-        audio_lava_list[i][2].pos3d(-0.5*Math.sin(pangle-rangle), 0, 0);
-        audio_lava_list[i][2].volume(3*(radius*radius / dist2));
-    }*/
+            if (dist2 < mindist){
+                mindist = dist2;
+                minrangle = rangle;
+            }
+        }
+        audio_lava.pos3d(-0.5*Math.sin(pangle-rangle), 0, 0);
+        audio_lava.volume(16*(radius*radius / dist2));
+    }
 }
 
 var img = new Image();
@@ -672,17 +706,17 @@ function init_empty(){
 
 function set_pause(p){
     if (p){
-        if (doupdate){
-            doupdate = false;
-            music.pause();
-            //pause_lava();
-        }
+        doupdate = false;
+        music.pause();
+        notplaying = true;
+        pause_lava();
     } else {
-        if (!doupdate){
-            doupdate = true;
+        doupdate = true;
+        if (playmusic && notplaying){
             music.play();
-            //unpause_lava();
+            notplaying = false;
         }
+        unpause_lava();
     }
 }
 
@@ -737,7 +771,7 @@ var init = function() {
         onend: function() {}
     });
     music.play();
-
+    notplaying = false;
 
     init_empty();
     initialize_level(lvl);
