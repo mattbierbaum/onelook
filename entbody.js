@@ -41,7 +41,7 @@ var sleeper_force_mag = 0.2;
 var sleeper_max_v2 = 4*4;
 
 // some other constants that are 1
-var damp = 0.3;
+var damp = 0.7;
 
 // display variables
 var c;
@@ -51,6 +51,7 @@ var frame = 0;
 var keys = [0,0,0,0];
 var frameskip = 2;
 var dodraw = true;
+var doupdate = false;
 var docircle = true;
 var showforce = true;
 
@@ -160,16 +161,6 @@ function audio_init(lvl){
         });
     }
 
-    music = new Howl({
-        urls: ['sounds/music_slow.mp3'],
-        autoplay: false,
-        loop: true,
-        volume: 0.13,
-        buffer: true,
-        onend: function() {}
-    });
-    music.play();
-
     lightswitch = new Howl({
         urls: ['sounds/lightswitch.mp3'],
         autoplay: false,
@@ -191,7 +182,11 @@ function audio_init(lvl){
 }
 
 
-function audio_lava_points(img, lvl){
+/*function audio_lava_points(img, lvl){
+    console.log('loading lava');
+    for (var i=0; i<audio_lava_list.length; i++)
+        audio_lava_list[i][2].unload();
+
     audio_lava_list = new Array();
 
     while (audio_lava_list.length < NLAVA){
@@ -203,25 +198,23 @@ function audio_lava_points(img, lvl){
                     autoplay: true,
                     loop: true,
                     volume: 0.01,
-                    buffer: true,
+                    buffer: false,
                 })
             ]);
     }
 }
 
 function pause_lava(){
-    if (audio_lava_list.length > 0) {
-        for (var i=0; i<NLAVA; i++){
-            audio_lava_list[i][2].pause();
-        }
+    for (var i=0; i<audio_lava_list.length; i++){
+        audio_lava_list[i][2].stop();
     }
 }
 
 function unpause_lava(){
-    for (var i=0; i<NLAVA; i++){
+    for (var i=0; i<audio_lava_list.length; i++){
         audio_lava_list[i][2].play();
     }
-}
+}*/
 
 function audio_sound_relative(){
     for (var i=1; i<n; i++){
@@ -258,7 +251,7 @@ function audio_sound_update(){
         }
     }
 
-    for (var i=0; i<audio_lava_list.length; i++){
+    /*for (var i=0; i<audio_lava_list.length; i++){
         var relx = audio_lava_list[i][0] - x[0];
         var rely = audio_lava_list[i][1] - y[0];
 
@@ -267,7 +260,7 @@ function audio_sound_update(){
 
         audio_lava_list[i][2].pos3d(-0.5*Math.sin(pangle-rangle), 0, 0);
         audio_lava_list[i][2].volume(3*(radius*radius / dist2));
-    }
+    }*/
 }
 
 var img = new Image();
@@ -281,6 +274,7 @@ var lvl = 1;
 
 function initialize_level(lvl){
     // loads the plan into src
+    console.log("loading level "+ lvl);
     planimg = new Image();
     planimg.onload = (function (lvl){
         return function (){
@@ -315,6 +309,7 @@ function initialize_stage1(lvl){
 function initialize_stage2(lvl){
     // here, we load the characters since
     // the audio depends on that being initialized
+    vx[0] = vy[0] = fx[0] = fy[0] = 0;
     keys[0] = keys[1] = keys[2] = keys[3] = 0;
     if (lvl == 1) {
         INITX = [70,70,140,330,300,150,330,450,330,340, 546];
@@ -334,7 +329,7 @@ function initialize_stage2(lvl){
         num_look = 1;
         n = 5;
         audio_init(lvl);
-        audio_lava_points(imgd, lvl); 
+        //audio_lava_points(imgd, lvl); 
     } else if (lvl == 3) {
         INITX = [61, 99, 239, 375, 510, 165];
         INITY = [19, 182, 314, 267, 84, 143];
@@ -344,7 +339,7 @@ function initialize_stage2(lvl){
         num_light_bomb = 5;
         num_look = 1;
         audio_init(lvl);
-        audio_lava_points(imgd, lvl); 
+        ///audio_lava_points(imgd, lvl); 
     }else {
         paint_text("GAME OVER! CONGRATULATIONS!");
     }
@@ -352,11 +347,12 @@ function initialize_stage2(lvl){
     ai_init(imgd, LX, LY, type);
     ready = true;
 
-    if (!anim_start) {
-        registerAnimationRequest();
-        requestAnimationFrame(tick, c);
-        anim_start = true;
-    }
+    //if (!anim_start) {
+    //    registerAnimationRequest();
+    //    requestAnimationFrame(tick, c);
+    //    anim_start = true;
+    //}
+    set_pause(false);
 }
   
 function load_level() {
@@ -366,27 +362,16 @@ function load_level() {
 
 function game_over() {
     // Game is over
-    update_pause();
-    alert('GAME OVER');
-    // init_empty();
-    // x[0] = INITX[0];
-    // y[0] = INITY[0];
-    // vx[0] = 0.;
-    // vy[0] = 0.;
-    // fx[0] = 0.;
-    // fy[0] = 0.;
-    // keys[0] = keys[1] = keys[2] = keys[3] = 0;
-    initialize_level(lvl);
-    setTimeout(update_pause,10);
+    set_pause(true);
+    paint_text("You died, restarting level.");
+    window.setTimeout(initialize_level(lvl), 1000);
 }
 
 function game_won() {
+    set_pause(true);
     paint_text("You're on to the next level!");
-    update_pause();
     lvl += 1;
-    console.log("lvl=" + lvl);
-    initialize_level(lvl);
-    setTimeout(update_pause,100);
+    window.setTimeout(initialize_level(lvl), 1000);
 }
 
 function is_level_wall(xx,yy) {
@@ -458,6 +443,8 @@ function use_look() {
 }
 
 function update(){
+    if (!doupdate) return;
+
     audio_sound_update();
     audio_sound_relative();
 
@@ -490,10 +477,10 @@ function update(){
 
         // if it is our guy
         if (type[i] == 1){
-            if (keys[0] == 1) {fy[i] -= 5.0;}
-            if (keys[1] == 1) {fy[i] += 5.0;}
-            if (keys[2] == 1) {fx[i] -= 5.0;}
-            if (keys[3] == 1) {fx[i] += 5.0;}
+            if (keys[0] == 1) {fy[i] -= 2*5.0;}
+            if (keys[1] == 1) {fy[i] += 2*5.0;}
+            if (keys[2] == 1) {fx[i] -= 2*5.0;}
+            if (keys[3] == 1) {fx[i] += 2*5.0;}
         }
 
         // if it is a walking monster
@@ -675,17 +662,19 @@ function init_empty(){
     crumbflick = [];
 }
 
-
-function update_pause(){
-    if (dodraw == true){
-        dodraw = false;
-        music.pause();
-        pause_lava();
+function set_pause(p){
+    if (p){
+        if (doupdate){
+            doupdate = false;
+            music.pause();
+            //pause_lava();
+        }
     } else {
-        requestAnimationFrame(tick, c);
-        dodraw = true;
-        music.play();
-        unpause_lava();
+        if (!doupdate){
+            doupdate = true;
+            music.play();
+            //unpause_lava();
+        }
     }
 }
 
@@ -693,19 +682,21 @@ function update_pause(){
     initialization and drawing 
 ================================================================================*/
 var tick = function(T) {
-    if (dodraw == true && ready == true) {
-        ctx.fillStyle = 'rgba(200,200,200,0.0)';
-        ctx.clearRect(0, 0, c.width, c.height);
-        ctx.fillRect(0,0,c.width,c.height);
-        ctx2.fillStyle = 'rgba(0,0,0,0.0)';
-        ctx2.clearRect(0, 0, c.width, c.height);
-        ctx2.fillRect(0,0,c.width,c.height);
-        draw_all(x, y, r, LX, LY, ctx, ctx2);
-        for (var i=0; i<frameskip; i++){
-            frame++;
-            update();
+    if (dodraw == true){
+        if (doupdate == true) {
+            ctx.fillStyle = 'rgba(200,200,200,0.0)';
+            ctx.clearRect(0, 0, c.width, c.height);
+            ctx.fillRect(0,0,c.width,c.height);
+            ctx2.fillStyle = 'rgba(0,0,0,0.0)';
+            ctx2.clearRect(0, 0, c.width, c.height);
+            ctx2.fillRect(0,0,c.width,c.height);
+            draw_all(x, y, r, LX, LY, ctx, ctx2);
+            for (var i=0; i<frameskip; i++){
+                frame++;
+                update();
+            }
         }
- 
+
         requestAnimationFrame(tick, c);
     }
 };
@@ -729,6 +720,17 @@ var init = function() {
     plancanvas = document.getElementById('plan');
     planctx = plancanvas.getContext('2d');
 
+    music = new Howl({
+        urls: ['sounds/music_slow.mp3'],
+        autoplay: false,
+        loop: true,
+        volume: 0.13,
+        buffer: true,
+        onend: function() {}
+    });
+    music.play();
+
+
     init_empty();
     initialize_level(lvl);
 
@@ -741,7 +743,12 @@ var init = function() {
         if (ev.keyCode == 37){ keys[2] = 0; } //left
         if (ev.keyCode == 68){ keys[3] = 0; } //right
         if (ev.keyCode == 39){ keys[3] = 0; } //right
-        if (ev.keyCode == 32){ ev.preventDefault(); update_pause(); } //space is pause
+        if (ev.keyCode == 32){ ev.preventDefault(); 
+            if (doupdate)
+                set_pause(true);
+            else
+                set_pause(false);
+        } //space is pause
         if (ev.keyCode == 66){ playsound(); }
         if (ev.keyCode == 77){ togglemusic = true; }
         if (ev.keyCode == 49){ use_light_bomb(); }
@@ -760,6 +767,9 @@ var init = function() {
         if (ev.keyCode == 68){ keys[3] = 1; } //right
         if (ev.keyCode == 39){ keys[3] = 1; } //right
     }, false);
+
+    registerAnimationRequest();
+    requestAnimationFrame(tick, c);
 
 };
 window.onload = init;
