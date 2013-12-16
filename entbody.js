@@ -380,7 +380,7 @@ function initialize_stage2(lvl){
         type = [1,2];
         n = 2;
         num_crumb = 5 - last_crumbx.length;
-        num_light_bomb = 1;
+        num_light_bomb = 5;
         num_look = 1;
     } else if (lvl == 2) {
         INITX = [30,34,200,445,301,204];
