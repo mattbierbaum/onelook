@@ -17,7 +17,6 @@ var flick_min = 30;
 var flick_max = 1e8;
 var flick_dark = 1.0;
 
-
 // sizes
 var LX = 640;
 var LY = 400;
@@ -41,14 +40,8 @@ var sleeper_r2 = 30.*30.;
 var sleeper_force_mag = 0.2;
 var sleeper_max_v2 = 4*4;
 
-
-
-// the variables we change
-var epsilon = 100;
-var noise   = 0.0;
-
 // some other constants that are 1
-var damp   = 0.3;
+var damp = 0.3;
 
 // display variables
 var c;
@@ -104,8 +97,7 @@ var last_step = [0,0,0];
 var audio_crumb;
 var audio_lightbomb;
 
-function audio_init(){
-    console.log('audio_init');
+function audio_init(lvl){
     audio_curr = new Array(n);
     audio_playing = new Array(n);
     audio_next_time = new Array(n);
@@ -194,13 +186,15 @@ function audio_init(){
         autoplay: false,
         loop: false
     });
+
+    audio_lava_points(imgd, lvl); 
 }
 
 
-function audio_lava_points(img){
-    console.log('audio_lava_points');
+function audio_lava_points(img, lvl){
     audio_lava_list = new Array();
 
+    if (lvl == 1) return;
     while (audio_lava_list.length < NLAVA){
         tx = Math.floor(LX*Math.random());
         ty = Math.floor(LY*Math.random());
@@ -282,37 +276,44 @@ var levelctx;
 var imgd;
 var ready = false;
 
-function init_level() {
-  /// initialize the level layer
-  // img = document.getElementById('testlevel');
-  img = new Image();
-  img.src = "levels/level1.png";
-  img.onload = load_level;
-  // levelctx.drawImage(img,0,0);
-
-  planimg = new Image();
-  // FIXME:
-  // If I try to make the plan image loading dynamic, everything breaks 
-  // if it isn't 'test.png'
-  // planimg.onload = init_plan;
-  planimg.src = "levels/test.png";
-  init_plan();
-  // making it explicit sort of works some of the time.
+function initialize_level(lvl){
+    planimg = new Image();
+    planimg.onload = (function (lvl){
+        return function (){
+            initialize_stage1(lvl);
+        }
+    })(lvl);
+    planimg.src = "levels/plan1.png";
 }
 
-function init_plan() {
-  console.log('init plan');
-  planctx.drawImage(planimg,0,0);
-  imgd = planctx.getImageData(0,0,LX,LY).data;
-  audio_lava_points(imgd);
-  console.log('ai_init');
-  ai_init(imgd, LX, LY, type);
-  ready = true;
-  // I tried to push some stuff here.
-  registerAnimationRequest();
-  requestAnimationFrame(tick, c);
+function initialize_stage1(lvl){
+    planctx.drawImage(planimg,0,0);
+    imgd = planctx.getImageData(0,0,LX,LY).data;
+
+    img = new Image();
+    img.onload = (function (lvl){
+        return function (){
+            initialize_stage2(lvl);
+        }
+    })(lvl);
+    img.src = "levels/level1.png";
 }
 
+function initialize_stage2(lvl){
+    // here, we load the characters since
+    // the audio depends on that being initialized
+    INITX = [70,70,140,330,300,150,330,450,330,340, 546];
+    INITY = [350,150,100,200,240,50,200,300,300,300, 49];
+    type = [1,2,2,2,2,3,3,3,3,4,4];
+
+    audio_init(lvl);
+    ai_init(imgd, LX, LY, type);
+    ready = true;
+
+    registerAnimationRequest();
+    requestAnimationFrame(tick, c);
+}
+  
 function load_level() {
   // Load the level onto the canvas
   levelctx.drawImage(img,0,0);
@@ -380,29 +381,29 @@ function is_game_won(xx,yy) {
 
 function use_light_bomb() {
     if (num_light_bomb > 0) {
+        audio_lightbomb.play();
         flick = 0.5*1./flick_speed;
         num_light_bomb -= 1;
     }
-    audio_lightbomb.play();
 }
 
 
 function use_crumb() {
     if (num_crumb > 0) {
+        audio_crumb.play();
         crumbx.push(x[0]);
         crumby.push(y[0]);
         crumbflick.push(crumb_flick_goal);
         num_crumb -= 1;
     }
-    audio_crumb.play();
 }
 
 function use_look() {
     if (num_look > 0) {
+        lightswitch.play();
         num_look -= 1;
         global_alpha = 1.;
     }
-    lightswitch.play();
 }
 
 function update(){
@@ -601,7 +602,6 @@ function draw_crumbs() {
 }
 
 function init_empty(){
-    console.log('init_empty');
     r = [];
     x = [];
     y = [];
@@ -677,9 +677,8 @@ var init = function() {
     plancanvas = document.getElementById('plan');
     planctx = plancanvas.getContext('2d');
 
-    audio_init();
     init_empty();
-    init_level();
+    initialize_level(1);
 
     document.body.addEventListener('keyup', function(ev) {
         if (ev.keyCode == 87){ keys[0] = 0; } //up
@@ -710,12 +709,6 @@ var init = function() {
         if (ev.keyCode == 39){ keys[3] = 1; } //right
     }, false);
 
-    console.log('launching animation.');
-    // setTimeout(registerAnimationRequest,100);
-    // registerAnimationRequest();
-    // requestAnimationFrame(tick, c);
-    // setTimeout(startRequestAnimationFrame,110);
-
 };
 window.onload = init;
 
@@ -726,7 +719,6 @@ function startRequestAnimationFrame() {
 // Provides requestAnimationFrame in a cross browser way.
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 function registerAnimationRequest() {
-    console.log('register anim');
 if ( !window.requestAnimationFrame ) {
     window.requestAnimationFrame = ( function() {
       return window.webkitRequestAnimationFrame ||
