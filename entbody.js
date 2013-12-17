@@ -106,10 +106,20 @@ var last_step = [0,0,0];
 var audio_crumb;
 var audio_lightbomb;
 
+var sprite_width = 24;
 var guy_sprite = new Image();
-guy_sprite.src = "characters/guytopmed.png"
-var guy_sprite_width = 24;
+guy_sprite.src = "characters/guytopmed.png";
 var guy_radius = 10.0;
+
+var sprite_sleeper = new Image();
+sprite_sleeper.src = "characters/sprite_sleeper.png";
+var sprite_random = new Image();
+sprite_random.src = "characters/sprite_random.png";
+var sprite_tracker = new Image();
+sprite_tracker.src = "characters/sprite_tracker.png";
+
+var sprite_list = [guy_sprite, guy_sprite, sprite_sleeper, 
+    sprite_random, sprite_tracker];
 
 function audio_init(lvl){
     audio_curr = new Array(n);
@@ -682,41 +692,29 @@ function update(){
     }
 }
 
+function angle_from_v(vvx, vvy){
+    return Math.atan2(vvy, vvx) + Math.PI/2;
+}
+
+function draw_sprite_rotated(sprite, xx, yy, angle, alpha){
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(xx, yy);
+    ctx.rotate(angle);
+    ctx.drawImage(sprite, -sprite_width/2, -sprite_width/2);
+    ctx.restore();
+}
+
 function draw_all(x, y, r, LX, LY, ctx, ctx2) {
     load_level();
     ai_draw(x,y, time);
 
-    ctx.save();
-    ctx.translate(x[0], y[0]);
-    ctx.rotate(Math.atan2(vy[0], vx[0]) + Math.PI/2);
-    ctx.drawImage(guy_sprite, -guy_sprite_width/2, -guy_sprite_width/2);
-    ctx.restore();
-
     for (var i=0; i<x.length; i++) {
-        if (type[i] == 1 || type[i] == 4)
-            continue;
+        if (type[i] == 4) continue;
 
-        var indx = Math.floor(x[i]/LX);
-        var indy = Math.floor(y[i]/LY);
-        ctx.beginPath();
-        ctx.arc(x[i], y[i], r[i], 0, 2*Math.PI, true);
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = "#000000";
-        ctx.stroke();
+        draw_sprite_rotated(sprite_list[type[i]], x[i], y[i], 
+                angle_from_v(vx[i], vy[i]), 1.0);
 
-        var cr,cg,cb;
-        if (type[i] == 2) {
-            // sleeping
-            cr = 0;
-            cg = 255;
-            cb = 255;
-        } else {
-            cr = 255;
-            cg = 255;
-            cb = 0;
-        }
-        ctx.fillStyle = rgb(cr,cg,cb);
-        ctx.fill();
     }
 
     // draw text
@@ -919,14 +917,14 @@ var init = function() {
     initialize_level(lvl);
 
     document.body.addEventListener('keyup', function(ev) {
-        if (ev.keyCode == 87){ keys[0] = 0; } //up
-        if (ev.keyCode == 38){ keys[0] = 0; } //up
-        if (ev.keyCode == 83){ keys[1] = 0; } //down
-        if (ev.keyCode == 40){ keys[1] = 0; } //down
-        if (ev.keyCode == 65){ keys[2] = 0; } //left
-        if (ev.keyCode == 37){ keys[2] = 0; } //left
-        if (ev.keyCode == 68){ keys[3] = 0; } //right
-        if (ev.keyCode == 39){ keys[3] = 0; } //right
+        if (ev.keyCode == 87){ ev.preventDefault(); keys[0] = 0; } //up
+        if (ev.keyCode == 38){ ev.preventDefault(); keys[0] = 0; } //up
+        if (ev.keyCode == 83){ ev.preventDefault(); keys[1] = 0; } //down
+        if (ev.keyCode == 40){ ev.preventDefault(); keys[1] = 0; } //down
+        if (ev.keyCode == 65){ ev.preventDefault(); keys[2] = 0; } //left
+        if (ev.keyCode == 37){ ev.preventDefault(); keys[2] = 0; } //left
+        if (ev.keyCode == 68){ ev.preventDefault(); keys[3] = 0; } //right
+        if (ev.keyCode == 39){ ev.preventDefault(); keys[3] = 0; } //right
         if (ev.keyCode == 32){ ev.preventDefault(); 
             if (doupdate)
                 set_pause(true);
@@ -942,14 +940,14 @@ var init = function() {
     }, false);
 
     document.body.addEventListener('keydown', function(ev) {
-        if (ev.keyCode == 87){ keys[0] = 1; } //up
-        if (ev.keyCode == 38){ keys[0] = 1; } //up
-        if (ev.keyCode == 83){ keys[1] = 1; } //down
-        if (ev.keyCode == 40){ keys[1] = 1; } //down
-        if (ev.keyCode == 65){ keys[2] = 1; } //left
-        if (ev.keyCode == 37){ keys[2] = 1; } //left
-        if (ev.keyCode == 68){ keys[3] = 1; } //right
-        if (ev.keyCode == 39){ keys[3] = 1; } //right
+        if (ev.keyCode == 87){ ev.preventDefault(); keys[0] = 1; } //up
+        if (ev.keyCode == 38){ ev.preventDefault(); keys[0] = 1; } //up
+        if (ev.keyCode == 83){ ev.preventDefault(); keys[1] = 1; } //down
+        if (ev.keyCode == 40){ ev.preventDefault(); keys[1] = 1; } //down
+        if (ev.keyCode == 65){ ev.preventDefault(); keys[2] = 1; } //left
+        if (ev.keyCode == 37){ ev.preventDefault(); keys[2] = 1; } //left
+        if (ev.keyCode == 68){ ev.preventDefault(); keys[3] = 1; } //right
+        if (ev.keyCode == 39){ ev.preventDefault(); keys[3] = 1; } //right
     }, false);
 
     registerAnimationRequest();
