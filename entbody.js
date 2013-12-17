@@ -417,10 +417,10 @@ function initialize_stage2(lvl){
         num_light_bomb = 5;
         num_look = 1;
     } else if (lvl == 5) {
-        INITX = [577, 244, 407, 336, 269, 619];
-        INITY = [23, 367, 267, 144, 26, 132];
-        type =  [1 ,  2,   2,   2,   4,  3];
-        n = 6;
+        INITX = [577, 244, 407, 336, 269, 619, 104, 97];
+        INITY = [23, 367, 350, 144, 26, 132, 279, 75];
+        type =  [1 ,  2,   2,   2,   4,  3, 4, 3];
+        n = 7;
         num_crumb = 5 - last_crumbx.length;
         num_light_bomb = 5;
         num_look = 1;
