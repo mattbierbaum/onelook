@@ -548,7 +548,7 @@ function is_game_over(xx,yy) {
 
 function is_game_won(xx,yy) {
   var i = 4*Math.floor(xx) + 4*LX*Math.floor(yy);
-  if (imgd[i] <= 61 && imgd[i+1] <= 2 && imgd[i+2] >= 250) {
+  if (imgd[i] <= 200 && imgd[i+1] <= 5 && imgd[i+2] >= 250) {
       return true;
   }
   return false;
